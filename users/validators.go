@@ -38,12 +38,15 @@ type UserModelValidator struct {
 	userModel UserModel `json:"-"`
 }
 
-func (self *UserModelValidator) Bind (c *gin.Context) error {
+func (self *UserModelValidator) Bind(c *gin.Context) error {
 	err := common.Bind(c, self)
 	if err != nil {
 		return err
 	}
-	self.userModel.
+	self.userModel.Email = self.User.Email
+	self.userModel.PhoneNumber = self.User.PhoneNumber
+	self.userModel.setPassword(self.User.Password)
+	return nil
 }
 
 func NewUserModelValidator() UserModelValidator {
