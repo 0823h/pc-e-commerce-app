@@ -22,6 +22,18 @@ func main() {
 	Migrate(db)
 
 	r := gin.Default()
+
+	v1 := r.Group("/api")
+	users.UsersRegister(v1.Group("/users"))
+
+	testAuth := r.Group("/api/ping")
+
+	testAuth.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+
 	r.Run()
 
 	fmt.Println(viper.Get("DATABASE_HOST"))

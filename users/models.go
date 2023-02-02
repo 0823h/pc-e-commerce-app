@@ -2,6 +2,7 @@ package users
 
 import (
 	"errors"
+	"fmt"
 	"time"
 	"tmdt-backend/common"
 
@@ -53,6 +54,7 @@ func FindOneUser(condition interface{}) (UserModel, error) {
 	db := common.GetDB()
 	var model UserModel
 	err := db.Where(condition).First(&model).Error
+	fmt.Println(model, err)
 	return model, err
 }
 
@@ -62,8 +64,22 @@ func SaveOne(data interface{}) error {
 	return err
 }
 
-// func (model *UserModel) Update(data interface{}) error {
-// 	db := common.GetDB()
-// 	err := db.Model(model).Update(data).Error
-// 	return err
-// }
+func (u *UserModel) checkEmailExisted() bool {
+	db := common.GetDB()
+	var user UserModel
+	result := db.Where("email = ?", u.Email).First(&user)
+	if result.RowsAffected > 0 {
+		return true
+	}
+	return false
+}
+
+func (u *UserModel) checkPhoneNumberExisted() bool {
+	db := common.GetDB()
+	var user UserModel
+	result := db.Where("phone_number = ?", u.Email).First(&user)
+	if result.RowsAffected > 0 {
+		return true
+	}
+	return false
+}

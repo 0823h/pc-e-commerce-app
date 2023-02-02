@@ -27,9 +27,9 @@ func NewValidatorError(err error) CommonError {
 		// can translate each error one at a time.
 		//fmt.Println("gg",v.NameNamespace)
 		if v.Param() != "" {
-			res.Errors[v.Field()] = fmt.Sprintf("{%v: %v}", v.Tag, v.Param)
+			res.Errors[v.Field()] = fmt.Sprintf("{%v: %v}", v.Tag(), v.Param())
 		} else {
-			res.Errors[v.Field()] = fmt.Sprintf("{key: %v}", v.Tag)
+			res.Errors[v.Field()] = fmt.Sprintf("{key: %v}", v.Tag())
 		}
 
 	}
