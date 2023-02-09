@@ -53,3 +53,7 @@ func NewCreateProductValidatorFillWith(productModel Product) CreateProductValida
 
 	return createProductValidator
 }
+
+type UpdateProductValidator {
+	Product struct
+}
