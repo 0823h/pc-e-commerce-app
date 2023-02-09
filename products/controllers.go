@@ -8,7 +8,7 @@ import (
 )
 
 func GetAllProducts(c *gin.Context) {
-	var products []ProductModel
+	var products []Product
 	pagination := common.NewPagination()
 
 	db := common.GetDB()

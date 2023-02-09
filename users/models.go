@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserModel struct {
+type User struct {
 	ID                  uint      `gorm:"primaryKey"`
 	Email               string    `gorm:"column:email;not null"`
 	EmailVerified       string    `gorm:"column:email_verified;default:false"`
@@ -23,7 +23,7 @@ type UserModel struct {
 	Gender              string    `gorm:"column:gender"`
 	ProfilePicture      string    `gorm:"column:profile_picture"`
 	LastLoggedIn        time.Time `gorm:"column:last_logged_in"`
-	IsDeleted           bool      `gorm:"column:is_deleted,default:false"`
+	IsDeleted           bool      `gorm:"column:is_deleted;default:false"`
 	CreatedAt           time.Time ``
 	UpdatedAt           time.Time ``
 }
@@ -31,10 +31,10 @@ type UserModel struct {
 func AutoMigrate() {
 	db := common.GetDB()
 
-	db.AutoMigrate(&UserModel{})
+	db.AutoMigrate(&User{})
 }
 
-func (u *UserModel) setPassword(password string) error {
+func (u *User) setPassword(password string) error {
 	if len(password) == 0 {
 		return errors.New("password should not be empty!")
 	}
@@ -44,15 +44,15 @@ func (u *UserModel) setPassword(password string) error {
 	return nil
 }
 
-func (u *UserModel) checkPassword(password string) error {
+func (u *User) checkPassword(password string) error {
 	bytePassword := []byte(password)
 	byteHashedPassword := []byte(u.Password)
 	return bcrypt.CompareHashAndPassword(byteHashedPassword, bytePassword)
 }
 
-func FindOneUser(condition interface{}) (UserModel, error) {
+func FindOneUser(condition interface{}) (User, error) {
 	db := common.GetDB()
-	var model UserModel
+	var model User
 	err := db.Where(condition).First(&model).Error
 	fmt.Println(model, err)
 	return model, err
@@ -64,9 +64,9 @@ func SaveOne(data interface{}) error {
 	return err
 }
 
-func (u *UserModel) checkEmailExisted() bool {
+func (u *User) checkEmailExisted() bool {
 	db := common.GetDB()
-	var user UserModel
+	var user User
 	result := db.Where("email = ?", u.Email).First(&user)
 	if result.RowsAffected > 0 {
 		return true
@@ -74,9 +74,9 @@ func (u *UserModel) checkEmailExisted() bool {
 	return false
 }
 
-func (u *UserModel) checkPhoneNumberExisted() bool {
+func (u *User) checkPhoneNumberExisted() bool {
 	db := common.GetDB()
-	var user UserModel
+	var user User
 	result := db.Where("phone_number = ?", u.Email).First(&user)
 	if result.RowsAffected > 0 {
 		return true

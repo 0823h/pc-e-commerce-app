@@ -6,7 +6,7 @@ import (
 
 type ProfileSerializer struct {
 	C *gin.Context
-	UserModel
+	User
 }
 
 // Declare your response schema here
@@ -37,7 +37,7 @@ type UserSerializer struct {
 }
 
 func (self *UserSerializer) Response() UserResponse {
-	myUserModel := self.c.MustGet("my_user_model").(UserModel)
+	myUserModel := self.c.MustGet("my_user_model").(User)
 	user := UserResponse{
 		Email:          myUserModel.Email,
 		ProfilePicture: myUserModel.ProfilePicture,

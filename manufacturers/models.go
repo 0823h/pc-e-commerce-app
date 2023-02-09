@@ -5,7 +5,7 @@ import (
 	"tmdt-backend/common"
 )
 
-type ManufacturerModel struct {
+type Manufacturer struct {
 	ID        uint   `gorm:"primaryKey"`
 	Name      string `gorm:"column:name"`
 	Origin    string `gorm:"column:origin"`
@@ -17,7 +17,7 @@ type ManufacturerModel struct {
 func AutoMigrate() {
 	db := common.GetDB()
 
-	db.AutoMigrate(&ManufacturerModel{})
+	db.AutoMigrate(&Manufacturer{})
 }
 
 func SaveOne(data interface{}) error {

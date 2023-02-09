@@ -8,13 +8,13 @@ import (
 
 type CreateProductValidator struct {
 	Product struct {
-		SKU            string `form:"sku" json:"sku" binding:"required"`
-		Name           string `form:"name" json:"name" binding:"required"`
-		Description    string `form:"description" json:"description" binding:"required"`
-		Images         string `form:"images" json:"images" binding:"required"`
-		ManufacturerId uint   `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
+		SKU                 string `form:"sku" json:"sku" binding:"required"`
+		Name                string `form:"name" json:"name" binding:"required"`
+		Description         string `form:"description" json:"description" binding:"required"`
+		Images              string `form:"images" json:"images" binding:"required"`
+		ManufacturerModelId uint   `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
 	} `json:"product"`
-	productModel ProductModel `json:"-"`
+	productModel Product `json:"-"`
 }
 
 func NewCreateProductValidator() CreateProductValidator {
@@ -37,7 +37,7 @@ func (self *CreateProductValidator) Bind(c *gin.Context) error {
 	return nil
 }
 
-func NewCreateProductValidatorFillWith(productModel ProductModel) CreateProductValidator {
+func NewCreateProductValidatorFillWith(productModel Product) CreateProductValidator {
 	createProductValidator := NewCreateProductValidator()
 	createProductValidator.Product.SKU = productModel.SKU
 	createProductValidator.Product.Name = productModel.Name

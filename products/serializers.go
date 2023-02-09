@@ -8,21 +8,21 @@ import (
 
 type ProductSerializer struct {
 	C *gin.Context
-	ProductModel
+	Product
 }
 
 type ProductResponse struct {
-	ID             uint                            `json:"-"`
-	SKU            string                          `json:"sku"`
-	Name           string                          `json:"name"`
-	Description    string                          `json:"description"`
-	Images         *string                         `json:"images"`
-	Rating         float32                         `json:"rating"`
-	Price          float64                         `json:"price0"`
-	Quantity       uint                            `json:"quantity"`
-	SoldAmount     uint                            `json:"sold_amount"`
-	ManufacturerId uint                            `json:"manufacturer_id"`
-	Manufacturer   manufacturers.ManufacturerModel `json:"manufacturer"`
+	ID             uint                       `json:"-"`
+	SKU            string                     `json:"sku"`
+	Name           string                     `json:"name"`
+	Description    string                     `json:"description"`
+	Images         *string                    `json:"images"`
+	Rating         float32                    `json:"rating"`
+	Price          float64                    `json:"price0"`
+	Quantity       uint                       `json:"quantity"`
+	SoldAmount     uint                       `json:"sold_amount"`
+	ManufacturerID uint                       `json:"manufacturer_id"`
+	Manufacturer   manufacturers.Manufacturer `json:"manufacturer"`
 }
 
 func (self *ProductSerializer) Response() ProductResponse {
@@ -36,7 +36,7 @@ func (self *ProductSerializer) Response() ProductResponse {
 		Price:          self.Price,
 		Quantity:       self.Quantity,
 		SoldAmount:     self.SoldAmount,
-		ManufacturerId: self.ManufacturerId,
+		ManufacturerID: self.ManufacturerID,
 		Manufacturer:   self.Manufacturer,
 	}
 	return product

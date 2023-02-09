@@ -11,7 +11,7 @@ type LoginValidator struct {
 		Email    string `form:"email" json:"email" binding:"required,email"`
 		Password string `form:"password" json:"password" binding:"required,min=8,max=255"`
 	} `json:"user"`
-	userModel UserModel `json:"-"`
+	userModel User `json:"-"`
 }
 
 func (self *LoginValidator) Bind(c *gin.Context) error {
@@ -37,7 +37,7 @@ type UserModelValidator struct {
 		// PhoneNumber string `form:"phone_number" json:"phone_number" binding:"required"`
 		Password string `form:"password" json:"password" binding:"required,min=8,max=255"`
 	} `json:"user"`
-	userModel UserModel `json:"-"`
+	userModel User `json:"-"`
 }
 
 // Bind register body to validator model
