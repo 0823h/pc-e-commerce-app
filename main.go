@@ -27,6 +27,7 @@ func main() {
 
 	v1 := r.Group("/api")
 	users.UsersRegister(v1.Group("/users"))
+	products.ProductRouter(v1.Group("/products"))
 
 	testAuth := r.Group("/api/ping")
 

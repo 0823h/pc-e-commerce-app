@@ -84,3 +84,8 @@ func Paginate(value interface{}, pagination *Pagination, db *gorm.DB) func(db *g
 		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
 	}
 }
+
+func NewPagination() Pagination {
+	var pagination Pagination
+	return pagination
+}

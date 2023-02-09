@@ -8,10 +8,11 @@ import (
 
 type CreateProductValidator struct {
 	Product struct {
-		SKU         string `form:"sku" json:"sku" binding:"requireed"`
-		Name        string `form:"name" json:"name" binding:"required"`
-		Description string `form:"description" json:"description" binding:"required"`
-		Images      string `form:"image" json:"image" binding:"required"`
+		SKU            string `form:"sku" json:"sku" binding:"required"`
+		Name           string `form:"name" json:"name" binding:"required"`
+		Description    string `form:"description" json:"description" binding:"required"`
+		Images         string `form:"images" json:"images" binding:"required"`
+		ManufacturerId uint   `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
 	} `json:"product"`
 	productModel ProductModel `json:"-"`
 }

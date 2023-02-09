@@ -25,7 +25,7 @@ type ProductResponse struct {
 	Manufacturer   manufacturers.ManufacturerModel `json:"manufacturer"`
 }
 
-func (self *ProductSerializer) Respone() ProductResponse {
+func (self *ProductSerializer) Response() ProductResponse {
 	product := ProductResponse{
 		ID:             self.ID,
 		SKU:            self.SKU,
