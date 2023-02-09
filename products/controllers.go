@@ -25,16 +25,20 @@ func CreateProduct(c *gin.Context) {
 
 	if err := validator.Bind(c); err != nil {
 		// c.JSON(http.StatusUnprocessableEntity, common.NewValidatorError(err))
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		// c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
 	if err := SaveOne(&validator.productModel); err != nil {
 		// c.JSON(http.StatusUnprocessableEntity, common.NewError("database", err))
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		// c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
 	serializer := ProductSerializer{c, validator.productModel}
-	c.JSON(http.StatusCreated, gin.H{"Product": serializer.Response()})
+	// c.JSON(http.StatusCreated, gin.H{"Product": serializer.Response()})
+	common.SendResponse(c, http.StatusCreated, "Success", serializer)
+	return
 }
