@@ -4,6 +4,7 @@ import (
 	"tmdt-backend/common"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type CreateProductValidator struct {
@@ -27,6 +28,7 @@ func (self *CreateProductValidator) Bind(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
+	self.productModel.ID = uuid.New()
 	self.productModel.SKU = self.Product.SKU
 	self.productModel.Name = self.Product.Name
 	self.productModel.Description = self.Product.Description

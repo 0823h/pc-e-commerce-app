@@ -14,7 +14,8 @@ func GetAllProducts(c *gin.Context) {
 
 	db := common.GetDB()
 	db.Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
-	pagination.Data = products
+	serializer := ProductsSerializer{c, products}
+	pagination.Data = serializer.Response()
 	// c.JSON(http.StatusOK, gin.H{"products": products})
 	common.SendResponse(c, http.StatusOK, "Success", pagination)
 	return
@@ -39,6 +40,10 @@ func CreateProduct(c *gin.Context) {
 
 	serializer := ProductSerializer{c, validator.productModel}
 	// c.JSON(http.StatusCreated, gin.H{"Product": serializer.Response()})
-	common.SendResponse(c, http.StatusCreated, "Success", serializer)
+	common.SendResponse(c, http.StatusCreated, "Success", serializer.Response())
 	return
+}
+
+func UpdateProduct(c *gin.Context) {
+
 }

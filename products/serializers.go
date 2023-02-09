@@ -4,7 +4,13 @@ import (
 	"tmdt-backend/manufacturers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
+
+type ProductsSerializer struct {
+	C        *gin.Context
+	Products []Product
+}
 
 type ProductSerializer struct {
 	C *gin.Context
@@ -12,13 +18,13 @@ type ProductSerializer struct {
 }
 
 type ProductResponse struct {
-	ID             uint                       `json:"-"`
+	ID             uuid.UUID                  `json:"id"`
 	SKU            string                     `json:"sku"`
 	Name           string                     `json:"name"`
 	Description    string                     `json:"description"`
 	Images         *string                    `json:"images"`
 	Rating         float32                    `json:"rating"`
-	Price          float64                    `json:"price0"`
+	Price          float64                    `json:"price"`
 	Quantity       uint                       `json:"quantity"`
 	SoldAmount     uint                       `json:"sold_amount"`
 	ManufacturerID uint                       `json:"manufacturer_id"`
@@ -26,7 +32,7 @@ type ProductResponse struct {
 }
 
 func (self *ProductSerializer) Response() ProductResponse {
-	product := ProductResponse{
+	response := ProductResponse{
 		ID:             self.ID,
 		SKU:            self.SKU,
 		Name:           self.Name,
@@ -39,5 +45,14 @@ func (self *ProductSerializer) Response() ProductResponse {
 		ManufacturerID: self.ManufacturerID,
 		Manufacturer:   self.Manufacturer,
 	}
-	return product
+	return response
+}
+
+func (self *ProductsSerializer) Response() []ProductResponse {
+	response := []ProductResponse{}
+	for _, product := range self.Products {
+		serializer := ProductSerializer{self.C, product}
+		response = append(response, serializer.Response())
+	}
+	return response
 }
