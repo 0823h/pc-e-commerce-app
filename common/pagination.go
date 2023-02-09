@@ -11,12 +11,14 @@ import (
 )
 
 type Pagination struct {
-	Limit      int         `json:"limit,omitempty;query:limit"`
-	Page       int         `json:"page,omitempty;query:page"`
-	Sort       string      `json:"sort,omitempty;query:sort"`
-	TotalRows  int64       `json:"total_rows"`
-	TotalPages int         `json:"total_pages"`
-	Rows       interface{} `json:"rows"`
+	Metadata struct {
+		Limit      int    `json:"limit,omitempty;query:limit"`
+		Page       int    `json:"page,omitempty;query:page"`
+		Sort       string `json:"sort,omitempty;query:sort"`
+		TotalRows  int64  `json:"total_rows"`
+		TotalPages int    `json:"total_pages"`
+	} `json:"metadata"`
+	Data interface{} `json:"data"`
 }
 
 func (p *Pagination) GetOffset() int {
@@ -24,24 +26,24 @@ func (p *Pagination) GetOffset() int {
 }
 
 func (p *Pagination) GetLimit() int {
-	if p.Limit <= 0 {
-		p.Limit = 10
+	if p.Metadata.Limit <= 0 {
+		p.Metadata.Limit = 10
 	}
-	return p.Limit
+	return p.Metadata.Limit
 }
 
 func (p *Pagination) GetPage() int {
-	if p.Page <= 0 {
-		p.Page = 1
+	if p.Metadata.Page <= 0 {
+		p.Metadata.Page = 1
 	}
-	return p.Page
+	return p.Metadata.Page
 }
 
 func (p *Pagination) GetSort() string {
-	if p.Sort == "" {
-		p.Sort = "id desc"
+	if p.Metadata.Sort == "" {
+		p.Metadata.Sort = "id desc"
 	}
-	return p.Sort
+	return p.Metadata.Sort
 }
 
 func GetPaginationParameter(c *gin.Context, p *Pagination) {
@@ -49,13 +51,13 @@ func GetPaginationParameter(c *gin.Context, p *Pagination) {
 	if page == "" {
 		page = "0"
 	}
-	p.Page, _ = strconv.Atoi(page)
+	p.Metadata.Page, _ = strconv.Atoi(page)
 
 	limit := c.Query("limit")
 	if limit == "" {
 		limit = "0"
 	}
-	p.Limit, _ = strconv.Atoi(limit)
+	p.Metadata.Limit, _ = strconv.Atoi(limit)
 
 	order := strings.ToLower(c.Query("order"))
 	if order == "" {
@@ -66,7 +68,7 @@ func GetPaginationParameter(c *gin.Context, p *Pagination) {
 	if sort == "" {
 		sort = "id"
 	}
-	p.Sort = sort + " " + order
+	p.Metadata.Sort = sort + " " + order
 	// fmt.Println(p.Page, p.Limit, p.Sort)
 }
 
@@ -74,10 +76,10 @@ func Paginate(value interface{}, pagination *Pagination, db *gorm.DB) func(db *g
 	var totalRows int64
 	db.Model(value).Count(&totalRows)
 
-	pagination.TotalRows = totalRows
+	pagination.Metadata.TotalRows = totalRows
 	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.GetLimit())))
 	fmt.Println(totalPages)
-	pagination.TotalPages = totalPages
+	pagination.Metadata.TotalPages = totalPages
 	fmt.Println(pagination)
 
 	return func(db *gorm.DB) *gorm.DB {

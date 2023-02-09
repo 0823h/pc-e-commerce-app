@@ -10,10 +10,11 @@ import (
 func GetAllProducts(c *gin.Context) {
 	var products []Product
 	pagination := common.NewPagination()
+	common.GetPaginationParameter(c, &pagination)
 
 	db := common.GetDB()
 	db.Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
-	pagination.Rows = products
+	pagination.Data = products
 	// c.JSON(http.StatusOK, gin.H{"products": products})
 	common.SendResponse(c, http.StatusOK, "Success", pagination)
 	return
