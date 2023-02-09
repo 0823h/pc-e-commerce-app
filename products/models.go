@@ -2,6 +2,7 @@ package products
 
 import (
 	"time"
+	"tmdt-backend/common"
 	"tmdt-backend/manufacturers"
 )
 
@@ -20,4 +21,16 @@ type ProductModel struct {
 	IsDeleted      bool                            `gorm:"column:is_deleted;default:false"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+func AutoMigrate() {
+	db := common.GetDB()
+
+	db.AutoMigrate(&ProductModel{})
+}
+
+func SaveOne(data interface{}) error {
+	db := common.GetDB()
+	err := db.Save(data).Error
+	return err
 }

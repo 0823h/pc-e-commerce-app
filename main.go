@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"tmdt-backend/common"
+	"tmdt-backend/products"
 	"tmdt-backend/users"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 
 func Migrate(db *gorm.DB) {
 	users.AutoMigrate()
+	products.AutoMigrate()
 }
 
 func main() {
