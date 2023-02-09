@@ -42,3 +42,17 @@ func NewError(key string, err error) CommonError {
 	res.Errors[key] = err.Error()
 	return res
 }
+
+type Response struct {
+	Status  int         `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
+func SendResponse(c *gin.Context, statusCode int, message string, data interface{}) {
+	var response Response
+	response.Status = statusCode
+	response.Message = message
+	response.Data = data
+	c.JSON(statusCode, response)
+}

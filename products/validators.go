@@ -8,11 +8,11 @@ import (
 
 type CreateProductValidator struct {
 	Product struct {
-		SKU                 string `form:"sku" json:"sku" binding:"required"`
-		Name                string `form:"name" json:"name" binding:"required"`
-		Description         string `form:"description" json:"description" binding:"required"`
-		Images              string `form:"images" json:"images" binding:"required"`
-		ManufacturerModelId uint   `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
+		SKU            string `form:"sku" json:"sku" binding:"required"`
+		Name           string `form:"name" json:"name" binding:"required"`
+		Description    string `form:"description" json:"description" binding:"required"`
+		Images         string `form:"images" json:"images" binding:"required"`
+		ManufacturerId uint   `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
 	} `json:"product"`
 	productModel Product `json:"-"`
 }
@@ -30,6 +30,8 @@ func (self *CreateProductValidator) Bind(c *gin.Context) error {
 	self.productModel.SKU = self.Product.SKU
 	self.productModel.Name = self.Product.Name
 	self.productModel.Description = self.Product.Description
+	self.productModel.Images = &self.Product.Images
+	self.productModel.ManufacturerID = self.Product.ManufacturerId
 
 	if self.Product.Images != "" {
 		self.productModel.Images = &self.Product.Images

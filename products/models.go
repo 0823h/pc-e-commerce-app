@@ -17,8 +17,8 @@ type Product struct {
 	Quantity       uint    `gorm:"column:quantity"`
 	SoldAmount     uint    `gorm:"column:sold_amount"`
 	ManufacturerID uint
-	Manufacturer   manufacturers.Manufacturer
-	IsDeleted      bool `gorm:"column:is_deleted;default:false"`
+	Manufacturer   manufacturers.Manufacturer `gorm:"foreignKey:ManufacturerID"`
+	IsDeleted      bool                       `gorm:"column:is_deleted;default:false"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

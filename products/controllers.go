@@ -13,7 +13,10 @@ func GetAllProducts(c *gin.Context) {
 
 	db := common.GetDB()
 	db.Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
-	c.JSON(http.StatusOK, gin.H{"products": products})
+	pagination.Rows = products
+	// c.JSON(http.StatusOK, gin.H{"products": products})
+	common.SendResponse(c, http.StatusOK, "Success", pagination)
+	return
 }
 
 func CreateProduct(c *gin.Context) {
@@ -30,6 +33,7 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
+
 	serializer := ProductSerializer{c, validator.productModel}
 	c.JSON(http.StatusCreated, gin.H{"Product": serializer.Response()})
 }
