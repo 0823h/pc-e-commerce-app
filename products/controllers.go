@@ -13,7 +13,7 @@ func GetAllProducts(c *gin.Context) {
 	common.GetPaginationParameter(c, &pagination)
 
 	db := common.GetDB()
-	db.Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
+	db.Where("products.is_deleted = ?", "false").Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
 	serializer := ProductsSerializer{c, products}
 	pagination.Data = serializer.Response()
 	// c.JSON(http.StatusOK, gin.H{"products": products})

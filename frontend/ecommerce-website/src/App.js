@@ -1,5 +1,6 @@
 import logo from "./logo.svg";
 import "./App.css";
+import ProductList from "./components/ProductList";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         </a>
       </header>
       Hello world
+      <ProductList></ProductList>
     </div>
   );
 }

@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-import Axios from "axios";
+import axios from "axios";
 
-export default class ProductList extends React.Component {
-    return (<div>
-        
-    </div>)
-}
+const ProductList = (props) => {
+  // eslint-disable-next-line
+  const [productList, setProductList] = useState(null);
+  axios
+    .get(`localhost:8080/api/products`)
+    .then((result) => {
+      this.setProductList(result.data);
+      console.log("abclog:" + result.data);
+    })
+    .catch((error) => console.log(error));
+  console.log("hello world");
+  return <div>Hello: {productList} HelloHello</div>;
+};
+
+export default ProductList;
