@@ -37,8 +37,8 @@ export default class ProductList extends React.Component {
     persons: []
   }
 
-  componentDidMount() {
-    axios.get(`http://localhost:8080/api/products`)
+  async componentDidMount() {
+    await axios.get(`http://localhost:8080/api/products`)
       .then(res => {
         const persons = res.data;
         this.setState({ persons });
