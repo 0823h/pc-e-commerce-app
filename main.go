@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-	"strings"
 	"tmdt-backend/common"
 	"tmdt-backend/products"
 	"tmdt-backend/users"
@@ -29,29 +27,6 @@ func main() {
 
 	//Elasticsearch
 	common.ESInit()
-	es := common.ESInit()
-	index := "products"
-	mapping := `{
-		"settings": {
-			"number_of_shards": 1
-		},
-		"mappings": {
-			"properties": {
-				"field1": {
-					"type": "text"
-				}
-			}
-		}
-	}`
-
-	res, err := es.Indices.Create(
-		index,
-		es.Indices.Create.WithBody(strings.NewReader(mapping)),
-	)
-	if err != nil {
-		log.Fatal("Error: ", err)
-	}
-	log.Println(res)
 
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()

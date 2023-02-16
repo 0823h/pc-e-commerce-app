@@ -9,21 +9,25 @@ import (
 var ES *elasticsearch.Client
 
 func ESInit() *elasticsearch.Client {
+	// cfg := elasticsearch.Config{
+	// 	// Addresses: []string{
+	// 	// 	"http://localhost:9200",
+	// 	// },
+	// 	// Transport: &http.Transport{
+	// 	// 	MaxIdleConnsPerHost:   10,
+	// 	// 	ResponseHeaderTimeout: time.Second,
+	// 	// 	TLSClientConfig: &tls.Config{
+	// 	// 		MinVersion: tls.VersionTLS12,
+	// 	// 		// ...
+	// 	// 	},
+	// 	// 	// ...
+	// 	// },
+	// }
 	es, err := elasticsearch.NewDefaultClient()
 	if err != nil {
-		log.Fatalf("Error creating the client: %s", err)
+		log.Fatalf("Error getting response: %s", err)
 	}
-
-	// res, err := es.Info()
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// }
-
-	// defer res.Body.Close()
-	// log.Println(res)
-
 	ES = es
-
 	return ES
 }
 
