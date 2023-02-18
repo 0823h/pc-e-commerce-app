@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -89,7 +90,8 @@ func QueryBind(c *gin.Context) Query {
 		sort = "id"
 	}
 
-	name := strings.ToLower(c.Query("name"))
+	name := strings.ToLower(c.Query("Name"))
+	fmt.Println(c.Query("Name"))
 
 	var query Query
 	query.Metadata.page = page
@@ -107,11 +109,11 @@ func GetAllProductsES(c *gin.Context) {
 
 	var buf bytes.Buffer
 	var r map[string]interface{}
-
+	fmt.Println("QUERY: ", query.SearchKeyword.name)
 	es_query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"match": map[string]interface{}{
-				"name": query.SearchKeyword.name,
+				"Name": "laptop",
 			},
 		},
 	}
@@ -128,8 +130,26 @@ func GetAllProductsES(c *gin.Context) {
 	if err != nil {
 		log.Fatalf("Error getting response: %s", err)
 	}
+
+	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
+		log.Fatalf("Error parsing the response body: %s", err)
+	}
+
 	defer res.Body.Close()
 
+	if res.IsError() {
+		var e map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+			log.Fatalf("Error parsing the response body: %s", err)
+		} else {
+			// Print the response status and error information.
+			log.Fatalf("[%s] %s: %s",
+				res.Status(),
+				e["error"].(map[string]interface{})["type"],
+				e["error"].(map[string]interface{})["reason"],
+			)
+		}
+	}
 	log.Printf(
 		"[%s] %d hits; took: %dms",
 		res.Status(),
@@ -137,12 +157,13 @@ func GetAllProductsES(c *gin.Context) {
 		int(r["took"].(float64)),
 	)
 
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].(map[string]interface{}) {
+	fmt.Println(r["hits"].(map[string]interface{})["hits"])
+	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 		log.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
 	}
 
 	log.Println(strings.Repeat("=", 37))
 
-	common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
+	common.SendResponse(c, http.StatusOK, "GOOD", nil)
 	return
 }
