@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -63,7 +62,7 @@ type Query struct {
 		keyword string
 	}
 	SearchKeyword struct {
-		name string
+		Name string
 	}
 }
 
@@ -91,14 +90,14 @@ func QueryBind(c *gin.Context) Query {
 	}
 
 	name := strings.ToLower(c.Query("Name"))
-	fmt.Println(c.Query("Name"))
+	//fmt.Println(c.Query("Name"))
 
 	var query Query
 	query.Metadata.page = page
 	query.Metadata.limit = limit
 	query.Metadata.order = order
 	query.Metadata.sort = sort
-	query.SearchKeyword.name = name
+	query.SearchKeyword.Name = name
 
 	return query
 }
@@ -109,11 +108,11 @@ func GetAllProductsES(c *gin.Context) {
 
 	var buf bytes.Buffer
 	var r map[string]interface{}
-	fmt.Println("QUERY: ", query.SearchKeyword.name)
+	//Println("QUERY: ", query.SearchKeyword.name)
 	es_query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"match": map[string]interface{}{
-				"Name": "laptop",
+				"Name": query.SearchKeyword.Name,
 			},
 		},
 	}
@@ -157,13 +156,13 @@ func GetAllProductsES(c *gin.Context) {
 		int(r["took"].(float64)),
 	)
 
-	fmt.Println(r["hits"].(map[string]interface{})["hits"])
+	//fmt.Println(r["hits"].(map[string]interface{})["hits"])
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 		log.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
 	}
 
 	log.Println(strings.Repeat("=", 37))
 
-	common.SendResponse(c, http.StatusOK, "GOOD", nil)
+	common.SendResponse(c, http.StatusOK, "Success", r["hits"].(map[string]interface{})["hits"].([]interface{}))
 	return
 }
