@@ -149,20 +149,21 @@ func GetAllProductsES(c *gin.Context) {
 			)
 		}
 	}
-	log.Printf(
-		"[%s] %d hits; took: %dms",
-		res.Status(),
-		int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
-		int(r["took"].(float64)),
-	)
+	// log.Printf(
+	// 	"[%s] %d hits; took: %dms",
+	// 	res.Status(),
+	// 	int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
+	// 	int(r["took"].(float64)),
+	// )
 
 	//fmt.Println(r["hits"].(map[string]interface{})["hits"])
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		log.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
-	}
+	// for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
+	// 	log.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
+	// }
 
-	log.Println(strings.Repeat("=", 37))
+	// log.Println(strings.Repeat("=", 37))
 
-	common.SendResponse(c, http.StatusOK, "Success", r["hits"].(map[string]interface{})["hits"].([]interface{}))
+	common.SendResponse(c, http.StatusOK, "Success", nil)
+	// common.SendResponse(c, http.StatusOK, "Success", r["hits"].(map[string]interface{})["hits"].([]interface{}))
 	return
 }

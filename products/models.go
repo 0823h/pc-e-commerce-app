@@ -1,12 +1,15 @@
 package products
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"log"
 	"time"
 	"tmdt-backend/common"
 	"tmdt-backend/manufacturers"
 
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/esapi"
 	"github.com/google/uuid"
 )
 
@@ -38,17 +41,45 @@ func SaveOne(data interface{}) error {
 	db := common.GetDB()
 	err := db.Save(data).Error
 
+	// Index to ES
+	es := common.GetES()
+
+	es_data, es_err := json.Marshal(struct {
+		Title string `json:"title"`
+	}{Title: "test_title"})
+
+	if es_err != nil {
+		log.Fatalf("Error marshaling document: %s", err)
+	}
+
+	req := esapi.IndexRequest{
+		Index:      "test",
+		DocumentID: "2",
+		Body:       bytes.NewReader(es_data),
+		Refresh:    "true",
+	}
+
+	res, err := req.Do(context.Background(), es)
+	if err != nil {
+		log.Fatalf("Error getting response: %s", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		log.Printf("[%s] Error indexing document ID=%s", res.Status(), "1")
+	}
 	//Return error
 	return err
 
 }
 
-func SaveOneToES() {
-	es := common.GetES()
-	res, err := esapi.IndexRequest("index_name").
-		Raw([]byte(`{
-	  "id": 1,
-	  "name": "Foo",
-	  "price": 10
-	}`)).Do(context.Background())
-}
+// func SaveOneToES() {
+// 	es := common.GetES()
+
+// 	data, err := json.Marshal(struct {
+// 		Title string `json:"title"`
+// 	}{Title: title})
+// 	if err != nil {
+// 		log.Fatalf("Error marshaling document: %s", err)
+// 	}
+// }

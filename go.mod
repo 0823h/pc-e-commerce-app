@@ -3,6 +3,7 @@ module tmdt-backend
 go 1.19
 
 require (
+	github.com/elastic/go-elasticsearch/v8 v8.6.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-playground/validator/v10 v10.11.2
@@ -15,8 +16,7 @@ require (
 
 require (
 	github.com/elastic/elastic-transport-go/v8 v8.0.0-20211216131617-bbee439d559c // indirect
-	github.com/elastic/go-elasticsearch v0.0.0 // indirect
-	github.com/elastic/go-elasticsearch/v8 v8.6.0 // indirect
+	github.com/elastic/go-elasticsearch v0.0.0
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
