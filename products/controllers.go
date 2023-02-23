@@ -64,8 +64,8 @@ type Query struct {
 	}
 	SearchKeyword struct {
 		Name string
-		ID   string
-		SKU  string
+		// ID   string
+		// SKU  string
 	}
 }
 
@@ -105,26 +105,28 @@ func QueryBind(c *gin.Context) Query {
 	return query
 }
 
+func GetESQuery(c *gin.Context) interface{} {
+
+}
+
 func GetAllProductsES(c *gin.Context) {
 	es := common.GetES()
 	query := QueryBind(c)
+	fmt.Println(c.Request.URL.Query())
 
 	var buf bytes.Buffer
 	var r map[string]interface{}
 	fmt.Println("QUERY: ", query.SearchKeyword.Name)
-	es_query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": c.Request.URL.Query(),
-		},
-	}
 	// es_query := map[string]interface{}{
 	// 	"query": map[string]interface{}{
-	// 		"match": map[string]interface{}{
-	// 			"Name": query.SearchKeyword.Name,
-	// 			// "title": "test",
-	// 		},
+	// 		"match": query.SearchKeyword,
 	// 	},
 	// }
+	es_query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"match": query.SearchKeyword,
+		},
+	}
 	if err := json.NewEncoder(&buf).Encode(es_query); err != nil {
 		log.Fatalf("Error encoding query: %s", err)
 	}
@@ -141,7 +143,7 @@ func GetAllProductsES(c *gin.Context) {
 
 	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
 		log.Printf("Error parsing the response body: %s", err)
-		common.SendResponse(c, http.StatusConflict, err.Error(), nil)
+		common.SendResponse(c, http.StatusInternalServerError, err.Error(), nil)
 	}
 
 	defer res.Body.Close()
@@ -150,7 +152,7 @@ func GetAllProductsES(c *gin.Context) {
 		var e map[string]interface{}
 		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
 			log.Printf("Error parsing the response body: %s", err)
-			common.SendResponse(c, http.StatusConflict, err.Error(), nil)
+			common.SendResponse(c, http.StatusInternalServerError, err.Error(), nil)
 		} else {
 			// Print the response status and error information.
 			log.Fatalf("[%s] %s: %s",
