@@ -44,19 +44,17 @@ func SaveOne(data interface{}) error {
 	// Index to ES
 	es := common.GetES()
 
-	es_data, es_err := json.Marshal(struct {
-		Title string `json:"title"`
-	}{Title: "test_title"})
+	es_data, es_err := json.Marshal(data)
 
 	if es_err != nil {
 		log.Fatalf("Error marshaling document: %s", err)
 	}
 
 	req := esapi.IndexRequest{
-		Index:      "test",
-		DocumentID: "2",
-		Body:       bytes.NewReader(es_data),
-		Refresh:    "true",
+		Index: "product",
+		// DocumentID: "2",
+		Body:    bytes.NewReader(es_data),
+		Refresh: "true",
 	}
 
 	res, err := req.Do(context.Background(), es)
