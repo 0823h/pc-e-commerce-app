@@ -2,6 +2,7 @@ package products
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -129,46 +130,47 @@ func GetESQuery(c *gin.Context) map[string]interface{} {
 
 func GetAllProductsES(c *gin.Context) {
 	es := common.GetES()
-	// query := QueryBind(c)
-	query := GetESQuery(c)
+	query := QueryBind(c)
+	// query := GetESQuery(c)
 
 	var buf bytes.Buffer
 	var r map[string]interface{}
 	// fmt.Println("QUERY: ", query.SearchKeyword.Name)
-	// es_query := map[string]interface{}{
-	// 	"query": map[string]interface{}{
-	// 		"match": query.SearchKeyword,
-	// 	},
-	// }
 	es_query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"match": query["query"].([]interface{}),
+			"match": query.SearchKeyword,
 		},
 	}
+
+	// es_query := map[string]interface{}{
+	// 	"query": map[string]interface{}{
+	// 		"match": query["query"].([]interface{}),
+	// 	},
+	// }
 	if err := json.NewEncoder(&buf).Encode(es_query); err != nil {
 		log.Fatalf("Error encoding query: %s", err)
 	}
-	// res, err := es.Search(
-	// 	es.Search.WithContext(context.Background()),
-	// 	es.Search.WithIndex("product"),
-	// 	es.Search.WithBody(&buf),
-	// 	es.Search.WithTrackTotalHits(true),
-	// 	es.Search.WithPretty(),
-	// )
-	// if err != nil {
-	// 	log.Fatalf("Error getting response: %s", err)
-	// }
+	res, err := es.Search(
+		es.Search.WithContext(context.Background()),
+		es.Search.WithIndex("product"),
+		es.Search.WithBody(&buf),
+		es.Search.WithTrackTotalHits(true),
+		es.Search.WithPretty(),
+	)
+	if err != nil {
+		log.Fatalf("Error getting response: %s", err)
+	}
 
-	res1 := es.Search().Raw([]byte(`{
-		"query": {
-		  "term": {
-			"user.id": {
-			  "value": "kimchy",
-			  "boost": 1.0
-			}
-		  }
-		}
-	  }`))
+	// res1 := es.Search().Raw([]byte(`{
+	// 	"query": {
+	// 	  "term": {
+	// 		"user.id": {
+	// 		  "value": "kimchy",
+	// 		  "boost": 1.0
+	// 		}
+	// 	  }
+	// 	}
+	//   }`))
 
 	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
 		log.Printf("Error parsing the response body: %s", err)
