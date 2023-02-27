@@ -2,7 +2,6 @@ package manufacturers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type ManufacturersSerializer struct {
@@ -16,9 +15,9 @@ type ManufacturerSerializer struct {
 }
 
 type ManufacturerResponse struct {
-	ID     uuid.UUID `json:"id"`
-	Name   string    `json:"string"`
-	Origin string    `json:"origin"`
+	ID     string `json:"id"`
+	Name   string `json:"string"`
+	Origin string `json:"origin"`
 }
 
 func (self *ManufacturerSerializer) Response() ManufacturerResponse {

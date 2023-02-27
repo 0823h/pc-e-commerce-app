@@ -10,7 +10,7 @@ import (
 )
 
 type User struct {
-	ID                  uint      `gorm:"primaryKey"`
+	ID                  string    `gorm:"primaryKey"`
 	Email               string    `gorm:"column:email;not null"`
 	EmailVerified       string    `gorm:"column:email_verified;default:false"`
 	PhoneNumber         string    `gorm:"column:phone_number"`

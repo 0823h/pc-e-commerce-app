@@ -4,7 +4,6 @@ import (
 	"tmdt-backend/common"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type CreateManufacturerValidator struct {
@@ -25,7 +24,7 @@ func (self *CreateManufacturerValidator) Bind(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
-	self.manufacturerModel.ID = uuid.New()
+	// self.manufacturerModel.ID = uuid.New()
 	self.manufacturerModel.Name = self.Manufacturer.Name
 	self.manufacturerModel.Origin = self.Manufacturer.Origin
 

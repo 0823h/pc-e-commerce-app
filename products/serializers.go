@@ -4,7 +4,6 @@ import (
 	"tmdt-backend/manufacturers"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type ProductsSerializer struct {
@@ -18,7 +17,7 @@ type ProductSerializer struct {
 }
 
 type ProductResponse struct {
-	ID             uuid.UUID                  `json:"id"`
+	ID             string                     `json:"id"`
 	SKU            string                     `json:"sku"`
 	Name           string                     `json:"name"`
 	Description    string                     `json:"description"`
