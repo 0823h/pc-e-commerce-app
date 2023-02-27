@@ -211,8 +211,9 @@ func GetAllProductsES(c *gin.Context) {
 func RateProduct(c *gin.Context) {
 	// Check product id
 	productId := c.Param("id")
+	// fmt.Println("Product ID: ", productId)
 	if productId == ":id" {
-		common.SendResponse(c, http.StatusBadRequest, "Id not found!", "")
+		common.SendResponse(c, http.StatusBadRequest, "Error: Id not found!", "")
 		return
 	}
 	db := common.GetDB()
@@ -220,7 +221,7 @@ func RateProduct(c *gin.Context) {
 	product := NewProduct()
 	err := db.First(&product, productId).Error
 	if err != nil {
-		common.SendResponse(c, http.StatusNotFound, err.Error(), nil)
+		common.SendResponse(c, http.StatusNotFound, "Error: Product not found!", nil)
 		return
 	}
 
@@ -230,31 +231,36 @@ func RateProduct(c *gin.Context) {
 
 	err = db.First(&user, userId).Error
 	if err != nil {
-		common.SendResponse(c, http.StatusNotFound, err.Error(), nil)
+		common.SendResponse(c, http.StatusNotFound, "Error: User not found", nil)
 		return
 	}
 
-	// Search if rating exists
-	rating := NewRating()
-	err = db.Where("user_id = ? AND product_id = ?", userId, productId).First(&rating).Error
-
+	// Bind request
 	ratingValidator := NewRatingValidator()
-
 	if err := ratingValidator.Bind(c); err != nil {
 		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
-	if err != nil {
+	// Search if rating exists
+	rating := NewRating()
+	result := db.Where("user_id = ? AND product_id = ?", userId, productId).First(&rating)
+	if result.RowsAffected == 0 {
+		// fmt.Println("Go in")
 		rating = Rating{
-			Rate: ratingValidator.Rate,
+			Rate:      ratingValidator.Rate,
+			ProductID: productId,
+			Product:   product,
+			UserID:    userId,
+			User:      user,
 		}
 		db.Create(&rating)
-		common.SendResponse(c, http.StatusOK, err.Error(), rating)
+		common.SendResponse(c, http.StatusOK, "Success", rating)
 		return
 	}
+	// fmt.Println("Go out", result.RowsAffected)
 
-	db.Update("rate", ratingValidator)
-	common.SendResponse(c, http.StatusOK, "Success", nil)
-
+	result.Update("rate", ratingValidator.Rate)
+	common.SendResponse(c, http.StatusOK, "Success", rating)
+	return
 }

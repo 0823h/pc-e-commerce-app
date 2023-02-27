@@ -15,7 +15,7 @@ type ManufacturerSerializer struct {
 }
 
 type ManufacturerResponse struct {
-	ID     string `json:"id"`
+	ID     uint   `json:"id"`
 	Name   string `json:"string"`
 	Origin string `json:"origin"`
 }

@@ -89,7 +89,7 @@ func NewProduct() Product {
 // }
 
 type Rating struct {
-	ID            string `gorm:"primaryKey"`
+	ID            uint64 `gorm:"primaryKey"`
 	UserID        string
 	User          users.User `gorm:"foreignKey:UserID"`
 	ProductID     string
