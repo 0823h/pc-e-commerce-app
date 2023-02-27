@@ -17,7 +17,7 @@ type ProductSerializer struct {
 }
 
 type ProductResponse struct {
-	ID             string                     `json:"id"`
+	ID             uint64                     `json:"id"`
 	SKU            string                     `json:"sku"`
 	Name           string                     `json:"name"`
 	Description    string                     `json:"description"`

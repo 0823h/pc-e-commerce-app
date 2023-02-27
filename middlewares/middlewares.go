@@ -16,7 +16,8 @@ func Authorization(c *gin.Context) {
 	}
 	claims, err := common.ValidateToken(clientToken)
 	if err != "" {
-		common.SendResponse(c, http.StatusUnauthorized, "token validate error", "")
+		// common.SendResponse(c, http.StatusUnauthorized, "token validate error", "")
+		common.SendResponse(c, http.StatusUnauthorized, err, "")
 		c.Abort()
 		return
 	}

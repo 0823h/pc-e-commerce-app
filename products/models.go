@@ -14,7 +14,7 @@ import (
 )
 
 type Product struct {
-	ID             string  `gorm:"primaryKey"`
+	ID             uint64  `gorm:"primaryKey"`
 	SKU            string  `gorm:"column:sku"`
 	Name           string  `gorm:"column:name"`
 	Description    string  `gorm:"column:description"`
@@ -70,6 +70,11 @@ func SaveOne(data interface{}) error {
 	//Return error
 	return err
 
+}
+
+func NewProduct() Product {
+	var product Product
+	return product
 }
 
 // func SaveOneToES() {

@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
@@ -40,7 +39,7 @@ func GenerateToken(id uint64, email string) (signed string, err error) {
 }
 
 func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
-	secretKey := os.Getenv("SECRET_KEY")
+	secretKey := viper.GetString("SECRET_KEY")
 
 	token, err := jwt.ParseWithClaims(signedToken, &SignedDetails{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil

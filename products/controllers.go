@@ -215,12 +215,20 @@ func RateProduct(c *gin.Context) {
 		common.SendResponse(c, http.StatusBadRequest, "Id not found!", "")
 		return
 	}
+	db := common.GetDB()
+
+	product := NewProduct()
+	err := db.First(&product, productId).Error
+	if err != nil {
+		common.SendResponse(c, http.StatusNotFound, err.Error(), nil)
+		return
+	}
 
 	// Check user id
 	userId := c.GetString("id")
 	user := users.NewUser()
-	db := common.GetDB()
-	err := db.First(&user, userId).Error
+
+	err = db.First(&user, userId).Error
 	if err != nil {
 		common.SendResponse(c, http.StatusNotFound, err.Error(), nil)
 		return
@@ -243,6 +251,7 @@ func RateProduct(c *gin.Context) {
 		}
 		db.Create(&rating)
 		common.SendResponse(c, http.StatusOK, err.Error(), rating)
+		return
 	}
 
 	db.Update("rate", ratingValidator)
