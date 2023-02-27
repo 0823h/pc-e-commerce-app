@@ -10,7 +10,7 @@ import (
 )
 
 type User struct {
-	ID                  string    `gorm:"primaryKey"`
+	ID                  uint64    `gorm:"primaryKey"`
 	Email               string    `gorm:"column:email;not null"`
 	EmailVerified       string    `gorm:"column:email_verified;default:false"`
 	PhoneNumber         string    `gorm:"column:phone_number"`
@@ -64,11 +64,12 @@ func SaveOne(data interface{}) error {
 	return err
 }
 
-func (u *User) checkEmailExisted() bool {
+func (*User) checkEmailExisted() bool {
 	db := common.GetDB()
 	var user User
-	result := db.Where("email = ?", u.Email).First(&user)
+	result := db.Where("email = ?", user.Email).First(&user)
 	if result.RowsAffected > 0 {
+		// c.Set("user_id", user.ID)
 		return true
 	}
 	return false
@@ -82,4 +83,9 @@ func (u *User) checkPhoneNumberExisted() bool {
 		return true
 	}
 	return false
+}
+
+func NewUser() User {
+	var user User
+	return user
 }

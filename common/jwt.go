@@ -1,39 +1,41 @@
 package common
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/spf13/viper"
 )
 
 type SignedDetails struct {
-	ID          string
-	Email       string
-	PhoneNumber string
+	ID    string
+	Email string
+
 	jwt.StandardClaims
 }
 
-func GenerateToken(id string, email string, phone_number string) (signed string, err error) {
-	secretKey := os.Getenv("SECRET_KEY")
-	jwtLifeHour, err := strconv.Atoi(os.Getenv("JWT_LIFE_HOUR"))
+func GenerateToken(id uint64, email string) (signed string, err error) {
+	secretKey := []byte(viper.GetString("SECRET_KEY"))
+	fmt.Println(secretKey)
+	jwtLifeHour, err := strconv.Atoi(viper.GetString("JWT_LIFE"))
 	if err != nil {
 		log.Panic(err)
 	}
 	jwtLifeHour = jwtLifeHour * time.Now().Hour()
 
 	claims := &SignedDetails{
-		ID:          id,
-		Email:       email,
-		PhoneNumber: phone_number,
+		ID:    strconv.FormatUint(id, 10),
+		Email: email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(jwtLifeHour)).Unix(),
 			IssuedAt:  time.Now().Local().Unix(),
 		},
 	}
-	token, err := jwt.NewWithClaims(jwt.SigningMethodES256, claims).SignedString([]byte(secretKey))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(secretKey)
 	return token, err
 }
 

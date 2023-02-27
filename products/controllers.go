@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"tmdt-backend/common"
+	"tmdt-backend/users"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +23,6 @@ func GetAllProducts(c *gin.Context) {
 	db.Where("products.is_deleted = ?", "false").Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
 	serializer := ProductsSerializer{c, products}
 	pagination.Data = serializer.Response()
-	// c.JSON(http.StatusOK, gin.H{"products": products})
 	common.SendResponse(c, http.StatusOK, "Success", pagination)
 	return
 }
@@ -31,21 +31,16 @@ func CreateProduct(c *gin.Context) {
 	validator := NewCreateProductValidator()
 
 	if err := validator.Bind(c); err != nil {
-		// c.JSON(http.StatusUnprocessableEntity, common.NewValidatorError(err))
-		// c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
 	if err := SaveOne(&validator.productModel); err != nil {
-		// c.JSON(http.StatusUnprocessableEntity, common.NewError("database", err))
-		// c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
 	serializer := ProductSerializer{c, validator.productModel}
-	// c.JSON(http.StatusCreated, gin.H{"Product": serializer.Response()})
 	common.SendResponse(c, http.StatusCreated, "Success", serializer.Response())
 	return
 }
@@ -211,4 +206,46 @@ func GetAllProductsES(c *gin.Context) {
 	// common.SendResponse(c, http.StatusOK, "Success", nil)
 	common.SendResponse(c, http.StatusOK, "Success", r["hits"].(map[string]interface{})["hits"].([]interface{}))
 	return
+}
+
+func RateProduct(c *gin.Context) {
+	// Check product id
+	productId := c.Param("id")
+	if productId == ":id" {
+		common.SendResponse(c, http.StatusBadRequest, "Id not found!", "")
+		return
+	}
+
+	// Check user id
+	userId := c.GetString("id")
+	user := users.NewUser()
+	db := common.GetDB()
+	err := db.First(&user, userId).Error
+	if err != nil {
+		common.SendResponse(c, http.StatusNotFound, err.Error(), nil)
+		return
+	}
+
+	// Search if rating exists
+	rating := NewRating()
+	err = db.Where("user_id = ? AND product_id = ?", userId, productId).First(&rating).Error
+
+	ratingValidator := NewRatingValidator()
+
+	if err := ratingValidator.Bind(c); err != nil {
+		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
+		return
+	}
+
+	if err != nil {
+		rating = Rating{
+			Rate: ratingValidator.Rate,
+		}
+		db.Create(&rating)
+		common.SendResponse(c, http.StatusOK, err.Error(), rating)
+	}
+
+	db.Update("rate", ratingValidator)
+	common.SendResponse(c, http.StatusOK, "Success", nil)
+
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 	"tmdt-backend/common"
 	"tmdt-backend/manufacturers"
+	"tmdt-backend/users"
 
 	"github.com/elastic/go-elasticsearch/esapi"
 )
@@ -33,6 +34,7 @@ func AutoMigrate() {
 	db := common.GetDB()
 
 	db.AutoMigrate(&Product{})
+	db.AutoMigrate(&Rating{})
 }
 
 func SaveOne(data interface{}) error {
@@ -80,3 +82,21 @@ func SaveOne(data interface{}) error {
 // 		log.Fatalf("Error marshaling document: %s", err)
 // 	}
 // }
+
+type Rating struct {
+	ID            string `gorm:"primaryKey"`
+	UserID        string
+	User          users.User `gorm:"foreignKey:UserID"`
+	ProductID     string
+	Product       Product `gorm:"foreignKey:ProductID"`
+	Rate          uint    `gorm:"column:rate;default:0"`
+	NumberOfClick uint    `gorm:"column:number_of_click;default:0"`
+	IsDeleted     bool    `gorm:"default:false"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+func NewRating() Rating {
+	var rating Rating
+	return rating
+}

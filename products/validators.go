@@ -52,3 +52,17 @@ func NewCreateProductValidatorFillWith(productModel Product) CreateProductValida
 
 	return createProductValidator
 }
+
+type RatingValidator struct {
+	Rate uint `form:"rate" json:"rate" binding:"required"`
+}
+
+func NewRatingValidator() RatingValidator {
+	var ratingValidator RatingValidator
+	return ratingValidator
+}
+
+func (self *RatingValidator) Bind(c *gin.Context) error {
+	err := common.Bind(c, self)
+	return err
+}
