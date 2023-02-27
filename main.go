@@ -3,6 +3,7 @@ package main
 import (
 	"tmdt-backend/common"
 	"tmdt-backend/products"
+	"tmdt-backend/ratings"
 	"tmdt-backend/users"
 
 	"github.com/gin-contrib/cors"
@@ -41,6 +42,7 @@ func main() {
 	v1 := r.Group("/api")
 	users.UsersRegister(v1.Group("/users"))
 	products.ProductRouter(v1.Group("/products"))
+	ratings.RatingRouter(v1.Group("/ratings"))
 
 	testAuth := r.Group("/api/ping")
 

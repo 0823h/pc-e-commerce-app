@@ -90,9 +90,9 @@ func NewProduct() Product {
 
 type Rating struct {
 	ID            uint64 `gorm:"primaryKey"`
-	UserID        string
+	UserID        uint64
 	User          users.User `gorm:"foreignKey:UserID"`
-	ProductID     string
+	ProductID     uint64
 	Product       Product `gorm:"foreignKey:ProductID"`
 	Rate          uint    `gorm:"column:rate;default:0"`
 	NumberOfClick uint    `gorm:"column:number_of_click;default:0"`

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"tmdt-backend/common"
 	"tmdt-backend/users"
@@ -247,11 +248,14 @@ func RateProduct(c *gin.Context) {
 	result := db.Where("user_id = ? AND product_id = ?", userId, productId).First(&rating)
 	if result.RowsAffected == 0 {
 		// fmt.Println("Go in")
+
+		userIdUint, _ := strconv.ParseUint(productId, 10, 64)
+		productIdUint, _ := strconv.ParseUint(userId, 10, 64)
 		rating = Rating{
 			Rate:      ratingValidator.Rate,
-			ProductID: productId,
+			ProductID: productIdUint,
 			Product:   product,
-			UserID:    userId,
+			UserID:    userIdUint,
 			User:      user,
 		}
 		db.Create(&rating)
@@ -262,5 +266,18 @@ func RateProduct(c *gin.Context) {
 
 	result.Update("rate", ratingValidator.Rate)
 	common.SendResponse(c, http.StatusOK, "Success", rating)
+	return
+}
+
+func GetRatings(c *gin.Context) {
+	var ratings []Rating
+	pagination := common.NewPagination()
+	common.GetPaginationParameter(c, &pagination)
+
+	db := common.GetDB()
+	db.Where("ratings.is_deleted = ?", "false").Scopes(common.Paginate(ratings, &pagination, db)).Find(&ratings)
+	serializer := RatingsSerializer{c, ratings}
+	pagination.Data = serializer.Response()
+	common.SendResponse(c, http.StatusOK, "Success", pagination)
 	return
 }

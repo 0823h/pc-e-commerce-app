@@ -2,6 +2,7 @@ package products
 
 import (
 	"tmdt-backend/manufacturers"
+	"tmdt-backend/users"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,6 +52,48 @@ func (self *ProductsSerializer) Response() []ProductResponse {
 	response := []ProductResponse{}
 	for _, product := range self.Products {
 		serializer := ProductSerializer{self.C, product}
+		response = append(response, serializer.Response())
+	}
+	return response
+}
+
+type RatingResponse struct {
+	ID            uint64     `json:"id"`
+	UserID        uint64     `json:"user_id"`
+	User          users.User `json:"user"`
+	ProductID     uint64     `json:"product_id"`
+	Product       Product    `json:"product"`
+	Rate          uint       `json:"rate"`
+	NumberOfClick uint       `json:"number_of_click"`
+}
+
+type RatingsSerializer struct {
+	C       *gin.Context
+	Ratings []Rating
+}
+
+type RatingSerializer struct {
+	C *gin.Context
+	Rating
+}
+
+func (self *RatingSerializer) Response() RatingResponse {
+	response := RatingResponse{
+		ID:            self.ID,
+		UserID:        self.UserID,
+		User:          self.User,
+		ProductID:     self.ProductID,
+		Product:       self.Product,
+		Rate:          self.Rate,
+		NumberOfClick: self.NumberOfClick,
+	}
+	return response
+}
+
+func (self *RatingsSerializer) Response() []RatingResponse {
+	response := []RatingResponse{}
+	for _, rating := range self.Ratings {
+		serializer := RatingSerializer{self.C, rating}
 		response = append(response, serializer.Response())
 	}
 	return response
