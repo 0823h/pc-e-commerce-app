@@ -10,7 +10,7 @@ type CreateProductValidator struct {
 	SKU            string  `form:"sku" json:"sku" binding:"required"`
 	Name           string  `form:"name" json:"name" binding:"required"`
 	Description    string  `form:"description" json:"description" binding:"required"`
-	Images         string  `form:"images" json:"images" binding:"required"`
+	Images         *string `form:"images" json:"images" binding:"required"`
 	ManufacturerId uint    `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
 	productModel   Product `json:"-"`
 }
@@ -29,12 +29,11 @@ func (self *CreateProductValidator) Bind(c *gin.Context) error {
 	self.productModel.SKU = self.SKU
 	self.productModel.Name = self.Name
 	self.productModel.Description = self.Description
-	self.productModel.Images = &self.Images
+	if (self.Images) != nil {
+		self.productModel.Images = self.Images
+	}
 	self.productModel.ManufacturerID = self.ManufacturerId
 
-	if self.Images != "" {
-		self.productModel.Images = &self.Images
-	}
 	return nil
 }
 
@@ -45,7 +44,7 @@ func NewCreateProductValidatorFillWith(productModel Product) CreateProductValida
 	createProductValidator.Description = productModel.Description
 
 	if productModel.Images != nil {
-		createProductValidator.Images = *productModel.Images
+		createProductValidator.Images = productModel.Images
 	}
 
 	return createProductValidator

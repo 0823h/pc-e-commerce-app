@@ -323,7 +323,8 @@ func TestImageUpload(c *gin.Context) {
 	file, header, err := c.Request.FormFile("upload")
 	filename := header.Filename
 	fmt.Println(header.Filename)
-	out, err := os.Create("./product_images/" + filename + ".png")
+	image_link := "./product_images/" + filename + ".png"
+	out, err := os.Create(filename)
 	// out, err := os.Create("./product_images/" + filename + ".png")
 	if err != nil {
 		log.Fatal(err)
@@ -333,4 +334,7 @@ func TestImageUpload(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	common.SendResponse(c, http.StatusOK, "Success", image_link)
+	return
 }
