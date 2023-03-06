@@ -7,14 +7,12 @@ import (
 )
 
 type CreateProductValidator struct {
-	Product struct {
-		SKU            string `form:"sku" json:"sku" binding:"required"`
-		Name           string `form:"name" json:"name" binding:"required"`
-		Description    string `form:"description" json:"description" binding:"required"`
-		Images         string `form:"images" json:"images" binding:"required"`
-		ManufacturerId uint   `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
-	} `json:"product"`
-	productModel Product `json:"-"`
+	SKU            string  `form:"sku" json:"sku" binding:"required"`
+	Name           string  `form:"name" json:"name" binding:"required"`
+	Description    string  `form:"description" json:"description" binding:"required"`
+	Images         string  `form:"images" json:"images" binding:"required"`
+	ManufacturerId uint    `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
+	productModel   Product `json:"-"`
 }
 
 func NewCreateProductValidator() CreateProductValidator {
@@ -28,26 +26,26 @@ func (self *CreateProductValidator) Bind(c *gin.Context) error {
 		return err
 	}
 	// self.productModel.ID = uuid.New()
-	self.productModel.SKU = self.Product.SKU
-	self.productModel.Name = self.Product.Name
-	self.productModel.Description = self.Product.Description
-	self.productModel.Images = &self.Product.Images
-	self.productModel.ManufacturerID = self.Product.ManufacturerId
+	self.productModel.SKU = self.SKU
+	self.productModel.Name = self.Name
+	self.productModel.Description = self.Description
+	self.productModel.Images = &self.Images
+	self.productModel.ManufacturerID = self.ManufacturerId
 
-	if self.Product.Images != "" {
-		self.productModel.Images = &self.Product.Images
+	if self.Images != "" {
+		self.productModel.Images = &self.Images
 	}
 	return nil
 }
 
 func NewCreateProductValidatorFillWith(productModel Product) CreateProductValidator {
 	createProductValidator := NewCreateProductValidator()
-	createProductValidator.Product.SKU = productModel.SKU
-	createProductValidator.Product.Name = productModel.Name
-	createProductValidator.Product.Description = productModel.Description
+	createProductValidator.SKU = productModel.SKU
+	createProductValidator.Name = productModel.Name
+	createProductValidator.Description = productModel.Description
 
 	if productModel.Images != nil {
-		createProductValidator.Product.Images = *productModel.Images
+		createProductValidator.Images = *productModel.Images
 	}
 
 	return createProductValidator
@@ -65,4 +63,37 @@ func NewRatingValidator() RatingValidator {
 func (self *RatingValidator) Bind(c *gin.Context) error {
 	err := common.Bind(c, self)
 	return err
+}
+
+type UpdateProductValidator struct {
+	Product struct {
+		Name        string `form:"name" json:"name"`
+		Description string `form:"description" json:"description"`
+	} `json:"product"`
+	productModel Product `json:"-"`
+}
+
+func NewUpdateProductValidator() UpdateProductValidator {
+	var updateProductValidator UpdateProductValidator
+	return updateProductValidator
+}
+
+func (self *UpdateProductValidator) Bind(c *gin.Context) error {
+	err := common.Bind(c, self)
+
+	if self.Product.Description != "" {
+		self.productModel.Description = self.Product.Description
+	}
+
+	if self.Product.Name != "" {
+		self.productModel.Name = self.Product.Name
+	}
+
+	return err
+}
+
+func NewUpdateProductValidatorFillWith(productModel Product) UpdateProductValidator {
+	var updateProductValidator UpdateProductValidator
+	updateProductValidator.productModel = productModel
+	return updateProductValidator
 }

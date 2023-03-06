@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"tmdt-backend/common"
@@ -28,6 +30,7 @@ func GetAllProducts(c *gin.Context) {
 	return
 }
 
+// Create new product in database
 func CreateProduct(c *gin.Context) {
 	validator := NewCreateProductValidator()
 
@@ -36,17 +39,51 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	if err := SaveOne(&validator.productModel); err != nil {
+	db := common.GetDB()
+	err := db.Create(&validator.productModel).Error
+	if err != nil {
 		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
-	serializer := ProductSerializer{c, validator.productModel}
+	createdProduct := NewProduct()
+	db.Where("products.id = ?", validator.productModel.ID).Joins("Manufacturer").First(&createdProduct)
+
+	serializer := ProductSerializer{c, createdProduct}
 	common.SendResponse(c, http.StatusCreated, "Success", serializer.Response())
 	return
 }
 
 func UpdateProduct(c *gin.Context) {
+	productId := c.Param("id")
+
+	if productId == ":id" {
+		common.SendResponse(c, http.StatusBadRequest, "Error: Id not found!", "")
+		return
+	}
+
+	product := NewProduct()
+	db := common.GetDB()
+	result := db.Where("products.id = ?", productId).Joins("Manufacturer").First(&product)
+
+	if result.RowsAffected == 0 {
+		common.SendResponse(c, http.StatusNotFound, "Error: "+"Product not found", nil)
+		return
+	}
+
+	updateProductValidator := NewUpdateProductValidatorFillWith(product)
+	err := updateProductValidator.Bind(c)
+	if err != nil {
+		common.SendResponse(c, http.StatusUnprocessableEntity, "Error: "+err.Error(), nil)
+		return
+	}
+
+	product = updateProductValidator.productModel
+	fmt.Println(updateProductValidator)
+
+	db.Save(&product)
+
+	common.SendResponse(c, http.StatusOK, "Success", product)
 
 }
 
@@ -280,4 +317,20 @@ func GetRatings(c *gin.Context) {
 	pagination.Data = serializer.Response()
 	common.SendResponse(c, http.StatusOK, "Success", pagination)
 	return
+}
+
+func TestImageUpload(c *gin.Context) {
+	file, header, err := c.Request.FormFile("upload")
+	filename := header.Filename
+	fmt.Println(header.Filename)
+	out, err := os.Create("./product_images/" + filename + ".png")
+	// out, err := os.Create("./product_images/" + filename + ".png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+	_, err = io.Copy(out, file)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

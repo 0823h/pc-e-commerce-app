@@ -11,6 +11,7 @@ import (
 	"tmdt-backend/users"
 
 	"github.com/elastic/go-elasticsearch/esapi"
+	"gorm.io/gorm"
 )
 
 type Product struct {
@@ -37,10 +38,10 @@ func AutoMigrate() {
 	db.AutoMigrate(&Rating{})
 }
 
-func SaveOne(data interface{}) error {
+func SaveOne(data interface{}) *gorm.DB {
 	// Save to database
 	db := common.GetDB()
-	err := db.Save(data).Error
+	result := db.Joins("Manufacturer").Save(data)
 
 	// Index to ES
 	es := common.GetES()
@@ -48,7 +49,7 @@ func SaveOne(data interface{}) error {
 	es_data, es_err := json.Marshal(data)
 
 	if es_err != nil {
-		log.Fatalf("Error marshaling document: %s", err)
+		log.Fatalf("Error marshaling document: %s", es_err)
 	}
 
 	req := esapi.IndexRequest{
@@ -67,9 +68,9 @@ func SaveOne(data interface{}) error {
 	if res.IsError() {
 		log.Printf("[%s] Error indexing document ID=%s", res.Status(), "1")
 	}
-	//Return error
-	return err
 
+	//Return error
+	return result
 }
 
 func NewProduct() Product {
