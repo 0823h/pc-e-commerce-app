@@ -5,6 +5,7 @@ import (
 	"tmdt-backend/users"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type ProductsSerializer struct {
@@ -22,7 +23,7 @@ type ProductResponse struct {
 	SKU            string                     `json:"sku"`
 	Name           string                     `json:"name"`
 	Description    string                     `json:"description"`
-	Images         *string                    `json:"images"`
+	Images         pq.StringArray             `json:"images"`
 	Rating         float32                    `json:"rating"`
 	Price          float64                    `json:"price"`
 	Quantity       uint                       `json:"quantity"`

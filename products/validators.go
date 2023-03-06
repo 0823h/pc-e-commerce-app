@@ -4,15 +4,16 @@ import (
 	"tmdt-backend/common"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type CreateProductValidator struct {
-	SKU            string  `form:"sku" json:"sku" binding:"required"`
-	Name           string  `form:"name" json:"name" binding:"required"`
-	Description    string  `form:"description" json:"description" binding:"required"`
-	Images         *string `form:"images" json:"images" binding:"required"`
-	ManufacturerId uint    `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
-	productModel   Product `json:"-"`
+	SKU            string         `form:"sku" json:"sku" binding:"required"`
+	Name           string         `form:"name" json:"name" binding:"required"`
+	Description    string         `form:"description" json:"description" binding:"required"`
+	Images         pq.StringArray `form:"images" json:"images" binding:"required"`
+	ManufacturerId uint           `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
+	productModel   Product        `json:"-"`
 }
 
 func NewCreateProductValidator() CreateProductValidator {
