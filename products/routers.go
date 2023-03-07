@@ -1,6 +1,8 @@
 package products
 
 import (
+	"tmdt-backend/middlewares"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,7 +11,7 @@ func ProductRouter(router *gin.RouterGroup) {
 	router.POST("/", CreateProduct)
 	//ElasticSearch
 	// router.GET("/es", GetAllProductsES)
-	// router.POST("/:id/rate", middlewares.Authorization, RateProduct)
+	router.POST("/:id/rate", middlewares.Authorization, RateProduct)
 	router.PUT("/:id", UpdateProduct)
 	router.POST("/image-test", TestImageUpload)
 }
