@@ -1,11 +1,15 @@
 package users
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 	"tmdt-backend/common"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zhenghaoz/gorse/client"
 )
 
 func UsersLogin(c *gin.Context) {
@@ -47,6 +51,7 @@ func UsersRegistration(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("Email " + userModelValidator.userModel.Email)
 	// Check if email has been used
 	if userModelValidator.userModel.checkEmailExisted() {
 		c.JSON(http.StatusBadRequest, common.NewError("register", errors.New("Email has been used")))
@@ -59,12 +64,20 @@ func UsersRegistration(c *gin.Context) {
 		return
 	}
 
-	if err := SaveOne(&userModelValidator.userModel); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, common.NewError("database", err))
+	db := common.GetDB()
+	err := db.Create(&userModelValidator.userModel).Error
+	if err != nil {
+		common.SendResponse(c, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
-	c.Set("my_user_model", userModelValidator.userModel)
-	serializer := UserSerializer{c}
+	// TO DO : add joins address for user
+	createdUser := NewUser()
+	db.Where("users.id = ?", userModelValidator.userModel.ID).First(&createdUser)
+
+	gorse := common.GetGorse()
+	gorse.InsertUser(context.Background(), client.User{UserId: strconv.FormatUint(createdUser.ID, 10), Labels: []string{"User labels"}})
+
+	serializer := UserSerializer{c, createdUser}
 	c.JSON(http.StatusCreated, gin.H{"user": serializer.Response()})
 }

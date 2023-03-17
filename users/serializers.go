@@ -34,13 +34,14 @@ type UserResponse struct {
 
 type UserSerializer struct {
 	c *gin.Context
+	User
 }
 
 func (self *UserSerializer) Response() UserResponse {
-	myUserModel := self.c.MustGet("my_user_model").(User)
+	// myUserModel := self.c.MustGet("my_user_model").(User)
 	user := UserResponse{
-		Email:          myUserModel.Email,
-		ProfilePicture: myUserModel.ProfilePicture,
+		Email:          self.Email,
+		ProfilePicture: self.ProfilePicture,
 	}
 	return user
 }

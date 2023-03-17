@@ -32,12 +32,10 @@ func NewLoginValidator() LoginValidator {
 
 // Register validator struct
 type UserModelValidator struct {
-	User struct {
-		Email string `form:"email" json:"email" binding:"required,min=4,max=255"`
-		// PhoneNumber string `form:"phone_number" json:"phone_number" binding:"required"`
-		Password string `form:"password" json:"password" binding:"required,min=8,max=255"`
-	} `json:"user"`
-	userModel User `json:"-"`
+	Email       string `form:"email" json:"email" binding:"required,min=4,max=255"`
+	PhoneNumber string `form:"phone_number" json:"phone_number" binding:"required"`
+	Password    string `form:"password" json:"password" binding:"required,min=8,max=255"`
+	userModel   User   `json:"-"`
 }
 
 // Bind register body to validator model
@@ -46,9 +44,9 @@ func (self *UserModelValidator) Bind(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
-	self.userModel.Email = self.User.Email
-	// self.userModel.PhoneNumber = self.User.PhoneNumber
-	self.userModel.setPassword(self.User.Password)
+	self.userModel.Email = self.Email
+	self.userModel.PhoneNumber = self.PhoneNumber
+	self.userModel.setPassword(self.Password)
 	return nil
 }
 

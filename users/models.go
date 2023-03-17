@@ -64,10 +64,11 @@ func SaveOne(data interface{}) error {
 	return err
 }
 
-func (*User) checkEmailExisted() bool {
+func (u *User) checkEmailExisted() bool {
 	db := common.GetDB()
 	var user User
-	result := db.Where("email = ?", user.Email).First(&user)
+	result := db.Where("email = ?", u.Email).First(&user)
+	fmt.Println(user.Email)
 	if result.RowsAffected > 0 {
 		// c.Set("user_id", user.ID)
 		return true
@@ -78,7 +79,7 @@ func (*User) checkEmailExisted() bool {
 func (u *User) checkPhoneNumberExisted() bool {
 	db := common.GetDB()
 	var user User
-	result := db.Where("phone_number = ?", u.Email).First(&user)
+	result := db.Where("phone_number = ?", u.PhoneNumber).First(&user)
 	if result.RowsAffected > 0 {
 		return true
 	}
