@@ -41,7 +41,7 @@ func main() {
 
 	// Gorse
 	// gorse := client.NewGorseClient("http://127.0.0.1:8087", "api_key")
-	common.GorseInit()
+	// common.GorseInit()
 	// gorse := common.GetGorse()
 	// fmt.Println(gorse)
 

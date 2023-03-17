@@ -15,6 +15,7 @@ import (
 	"tmdt-backend/users"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zhenghaoz/gorse/client"
 )
 
 func GetAllProducts(c *gin.Context) {
@@ -48,6 +49,10 @@ func CreateProduct(c *gin.Context) {
 
 	createdProduct := NewProduct()
 	db.Where("products.id = ?", validator.productModel.ID).Joins("Manufacturer").First(&createdProduct)
+
+	gorse := common.GetGorse()
+	gorse.InsertItem(context.Background(), client.Item{ItemId: strconv.FormatUint(createdProduct.ID, 10), IsHidden: false,
+		Categories: []string{"Shoes"}, Timestamp: "2023/03/18 12:22", Labels: []string{"Shoes labels"}, Comment: ""})
 
 	serializer := ProductSerializer{c, createdProduct}
 	common.SendResponse(c, http.StatusCreated, "Success", serializer.Response())
