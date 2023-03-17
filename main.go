@@ -39,6 +39,12 @@ func main() {
 	// OPTIONS method for ReactJS
 	corsConfig.AddAllowMethods("GET")
 
+	// Gorse
+	// gorse := client.NewGorseClient("http://127.0.0.1:8087", "api_key")
+	common.GorseInit()
+	// gorse := common.GetGorse()
+	// fmt.Println(gorse)
+
 	v1 := r.Group("/api")
 	users.UsersRegister(v1.Group("/users"))
 	products.ProductRouter(v1.Group("/products"))
