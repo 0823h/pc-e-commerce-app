@@ -19,12 +19,15 @@ import (
 )
 
 func GetAllProducts(c *gin.Context) {
+	conditionQuery := BindConditionQuery(c)
+
 	var products []Product
 	pagination := common.NewPagination()
 	common.GetPaginationParameter(c, &pagination)
 
 	db := common.GetDB()
-	db.Where("products.is_deleted = ?", "false").Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
+	// db.Where("products.is_deleted = ?", "false").Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
+	db.Where(conditionQuery).Scopes(common.Paginate(products, &pagination, db)).Joins("Manufacturer").Find(&products)
 	serializer := ProductsSerializer{c, products}
 	pagination.Data = serializer.Response()
 	common.SendResponse(c, http.StatusOK, "Success", pagination)
@@ -90,6 +93,18 @@ func UpdateProduct(c *gin.Context) {
 
 	common.SendResponse(c, http.StatusOK, "Success", product)
 
+}
+
+type ConditionQuery struct {
+	Name           string
+	ID             string
+	ManufacturerID string
+	IsDeleted      bool
+}
+
+func BindConditionQuery(c *gin.Context) ConditionQuery {
+	conditionQuery := ConditionQuery{Name: c.Query("name"), ID: c.Query("id"), ManufacturerID: c.Query("manufacturer_id"), IsDeleted: false}
+	return conditionQuery
 }
 
 type Query struct {
