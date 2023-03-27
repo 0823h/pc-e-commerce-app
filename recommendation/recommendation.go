@@ -146,8 +146,8 @@ type MatrixSlice struct {
 }
 
 // Creating a new matrix
-func NewMatrix() MatrixSlice {
-	matrix := MatrixSlice{nil}
+func NewMatrix() *MatrixSlice {
+	matrix := &MatrixSlice{nil}
 	return matrix
 }
 
@@ -195,23 +195,6 @@ func (self *MatrixSlice) LoadRating() {
 	fmt.Printf("self.data: %v\n", self.data)
 }
 
-// Normalize a matrix
-func Normalize_Y() {
-
-}
-
-// A main function for Recommendation package
-func InitMatrix() {
-	matrix := NewMatrix()
-	matrix.LoadRating()
-}
-
-type CF struct {
-	Y_data  MatrixSlice
-	n_users int
-	n_items int
-}
-
 // Helper function: Find if an element exists in slice
 func FindInSlice(slice []float64, x float64) bool {
 	for _, elem := range slice {
@@ -223,14 +206,14 @@ func FindInSlice(slice []float64, x float64) bool {
 }
 
 // Get number of users from a matrix
-func (self *MatrixSlice) GetUsersLength() int {
+func (self *MatrixSlice) GetUsersLength() (int, []float64) {
 	var usersLength []float64
 	for i := 0; i < self.GetNumberOfRows(); i++ {
 		if FindInSlice(usersLength, self.data[i][0]) == false {
 			usersLength = append(usersLength, self.data[i][0])
 		}
 	}
-	return len(usersLength)
+	return len(usersLength), usersLength
 }
 
 // Get number of items from a matrix
@@ -262,4 +245,59 @@ func (self *MatrixSlice) GetColumn(index int) []float64 {
 		column = append(column, row[index])
 	}
 	return column
+}
+
+// Calculate mean ratings of each users, store into slice
+func (self *MatrixSlice) CalculateMeanFromMatrix() [][2]float64 {
+	var slice [][2]float64
+	n_users, n_users_slice := self.GetUsersLength()
+	for i := 0; i < n_users; i++ {
+		var mean float64
+		var count int = 0
+		for j := 0; j < self.GetNumberOfRows(); j++ {
+			if self.GetRow(j)[0] == n_users_slice[i] {
+				mean += self.GetRow(j)[2]
+				count++
+			}
+		}
+		mean /= float64(count)
+		slice = append(slice, [2]float64{n_users_slice[i], mean})
+	}
+	return slice
+}
+
+type CF struct {
+	Y_data    *MatrixSlice
+	Ybar_data *MatrixSlice
+	n_users   int
+	n_items   int
+	k         int
+}
+
+// Creating a new CF
+func NewCF() CF {
+	y_data := NewMatrix()
+	y_data.LoadRating()
+	ybar_data := NewMatrix()
+	copy(ybar_data.data, y_data.data)
+
+	n_users, _ := y_data.GetUsersLength()
+	n_items := y_data.GetItemsLength()
+	cf := CF{y_data, ybar_data, n_users, n_items, 2}
+	return cf
+}
+
+// func (self *CF) Normalize_Y() {
+// 	mean_users := self.Y_data.CalculateMeanFromMatrix()
+// 	for i := 0; i <= self.Ybar_data.GetNumberOfRows(); i++ {
+// 		for j := 0; j <= self.mean_users[i]
+// 		self.Ybar_data[i] -=
+// 	}
+// }
+
+// A main function for testing in Recommendation package
+func InitMatrix() {
+	cf := NewCF()
+	mean_users := cf.Y_data.CalculateMeanFromMatrix()
+	fmt.Printf("mean_users: %v\n", mean_users)
 }
