@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"tmdt-backend/common"
+	"tmdt-backend/products"
 
 	"gonum.org/v1/gonum/mat"
 )
@@ -22,19 +24,19 @@ func NewMatrix(row int, col int, data []float64) Matrix {
 	return matrix
 }
 
-func main() {
-	matrix := NewMatrix(1, 3, nil)
-	matrix.InsertRow(1, 2, 3)
-	matrix.InsertRow(4, 5, 6)
-	matrix.InsertRow(7, 8, 9)
-	// matrix.InsertColumn(1, 2, 3)
-	// matrix.InsertColumn(1, 2, 3)
-	// matrix.InsertColumn(1, 2, 3, 4)
-	// matrix.InsertColumn(1, 2, 3, 4)
+// func main() {
+// 	matrix := NewMatrix(1, 3, nil)
+// 	matrix.InsertRow(1, 2, 3)
+// 	matrix.InsertRow(4, 5, 6)
+// 	matrix.InsertRow(7, 8, 9)
+// 	// matrix.InsertColumn(1, 2, 3)
+// 	// matrix.InsertColumn(1, 2, 3)
+// 	// matrix.InsertColumn(1, 2, 3, 4)
+// 	// matrix.InsertColumn(1, 2, 3, 4)
 
-	fmt.Printf("matrix: %v\n", matrix.matrix)
-	// matrix.row = 1
-}
+// 	fmt.Printf("matrix: %v\n", matrix.matrix)
+// 	// matrix.row = 1
+// }
 
 func (self *Matrix) InsertRow(elems ...float64) {
 	if len(elems) != self.col {
@@ -78,3 +80,18 @@ func (self *Matrix) InsertRow(elems ...float64) {
 // 	fmt.Printf("new_matrix: %v\n", new_matrix.matrix)
 // 	self = &new_matrix
 // }
+
+func (self *Matrix) LoadRatings() {
+	db := common.GetDB()
+	var ratings []products.Rating
+	db.Find(&ratings)
+	for _, rating := range ratings {
+		self.InsertRow(float64(rating.UserID), float64(rating.ProductID), float64(rating.Rate))
+	}
+}
+
+func InitMatrix() {
+	matrix := NewMatrix(1, 3, nil)
+	matrix.LoadRatings()
+	fmt.Printf("matrix: %v\n", matrix)
+}
