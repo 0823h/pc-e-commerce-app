@@ -6,6 +6,8 @@ import (
 	"tmdt-backend/common"
 	"tmdt-backend/products"
 	"tmdt-backend/users"
+
+	"github.com/gaspiman/cosine_similarity"
 )
 
 // type Matrix struct {
@@ -309,7 +311,6 @@ func (self *CF) Normalize_Y() {
 	}
 }
 
-// TODO
 // Form matrix Y from Y_data
 func (self *CF) FormMatrix() [][]float64 {
 	n_users, n_products := GetDBNumberOfUsersAndProducts()
@@ -319,7 +320,9 @@ func (self *CF) FormMatrix() [][]float64 {
 	}
 
 	for i := 0; i < self.Ybar_data.GetNumberOfRows(); i++ {
-		y_matrix[int(self.Ybar_data.data[i][0])][int(self.Ybar_data.data[i][1])] = self.Ybar_data.data[i][2]
+		// Need to -1 because gorm auto increment starts at 1 (not 0), so UserID 1 will be stored at column 0,
+		// and ProductID 1 will stored at row 0
+		y_matrix[int(self.Ybar_data.data[i][1])-1][int(self.Ybar_data.data[i][0])-1] = self.Ybar_data.data[i][2]
 	}
 
 	return y_matrix
@@ -352,4 +355,18 @@ func GetDBNumberOfUsersAndProducts() (n_users int, n_products int) {
 	n_products = int(result.RowsAffected)
 
 	return n_users, n_products
+}
+
+// Similarity function to calculate similarity between user - user using cosine - similarity
+func CalculateSimilarity(user_1 []float64, user_2 []float64) float64 {
+	distant, err := cosine_similarity.Cosine(user_1, user_2)
+	if err != nil {
+		log.Panic("Calculate distant fail!")
+	}
+	return distant
+}
+
+// Prediction function
+func (self *CF) Prediction(user_id int, item_id int) {
+
 }
