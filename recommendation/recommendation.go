@@ -5,6 +5,7 @@ import (
 	"log"
 	"tmdt-backend/common"
 	"tmdt-backend/products"
+	"tmdt-backend/users"
 )
 
 // type Matrix struct {
@@ -266,6 +267,11 @@ func (self *MatrixSlice) CalculateMeanFromMatrix() [][2]float64 {
 	return slice
 }
 
+// Get matrix value
+func (self *MatrixSlice) GetMatrixValue(row int, column int) float64 {
+	return self.data[row][column]
+}
+
 type CF struct {
 	Y_data    *MatrixSlice
 	Ybar_data *MatrixSlice
@@ -279,7 +285,10 @@ func NewCF() CF {
 	y_data := NewMatrix()
 	y_data.LoadRating()
 	ybar_data := NewMatrix()
-	copy(ybar_data.data, y_data.data)
+
+	for i := 0; i < y_data.GetNumberOfRows(); i++ {
+		ybar_data.data = append(ybar_data.data, y_data.data[i])
+	}
 
 	n_users, _ := y_data.GetUsersLength()
 	n_items := y_data.GetItemsLength()
@@ -287,17 +296,60 @@ func NewCF() CF {
 	return cf
 }
 
-// func (self *CF) Normalize_Y() {
-// 	mean_users := self.Y_data.CalculateMeanFromMatrix()
-// 	for i := 0; i <= self.Ybar_data.GetNumberOfRows(); i++ {
-// 		for j := 0; j <= self.mean_users[i]
-// 		self.Ybar_data[i] -=
-// 	}
-// }
+// Normalize a maitrx (collaborative filtering)
+func (self *CF) Normalize_Y() {
+	mean_users := self.Y_data.CalculateMeanFromMatrix()
+	for i := 0; i < self.Ybar_data.GetNumberOfRows(); i++ {
+		for j := 0; j < len(mean_users); j++ {
+			if self.Ybar_data.data[i][0] == mean_users[j][0] {
+				self.Ybar_data.data[i][2] -= mean_users[j][1]
+			}
+		}
+
+	}
+}
+
+// TODO
+// Form matrix Y from Y_data
+func (self *CF) FormMatrix() [][]float64 {
+	n_users, n_products := GetDBNumberOfUsersAndProducts()
+	y_matrix := make([][]float64, n_products)
+	for i := range y_matrix {
+		y_matrix[i] = make([]float64, n_users)
+	}
+
+	for i := 0; i < self.Ybar_data.GetNumberOfRows(); i++ {
+		y_matrix[int(self.Ybar_data.data[i][0])][int(self.Ybar_data.data[i][1])] = self.Ybar_data.data[i][2]
+	}
+
+	return y_matrix
+}
 
 // A main function for testing in Recommendation package
 func InitMatrix() {
 	cf := NewCF()
 	mean_users := cf.Y_data.CalculateMeanFromMatrix()
+	cf.Normalize_Y()
+	fmt.Printf("cf.Y_data.data: %v\n", cf.Y_data.data)
+	fmt.Printf("cf.Ybar_data.data: %v\n", cf.Ybar_data.data)
 	fmt.Printf("mean_users: %v\n", mean_users)
+	y_matrix := cf.FormMatrix()
+	fmt.Printf("y_matrix: %v\n", y_matrix)
+}
+
+// Helper function: Find number of users, number of products
+// from database
+func GetDBNumberOfUsersAndProducts() (n_users int, n_products int) {
+	db := common.GetDB()
+
+	var users []users.User
+	var products []products.Product
+
+	result := db.Find(&users)
+	n_users = int(result.RowsAffected)
+
+	result = db.Find(&products)
+	n_products = int(result.RowsAffected)
+
+	return n_users, n_products
 }
