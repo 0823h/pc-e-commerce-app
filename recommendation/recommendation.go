@@ -3,6 +3,8 @@ package recommendation
 import (
 	"fmt"
 	"log"
+	"math"
+	"sort"
 	"tmdt-backend/common"
 	"tmdt-backend/products"
 	"tmdt-backend/users"
@@ -178,7 +180,7 @@ func (self *CF) Normalize_Y() {
 }
 
 // Form matrix Y from Y_data
-func (self *CF) FormMatrix() [][]float64 {
+func (self *CF) FormMatrix() {
 	n_users, n_products := GetDBNumberOfUsersAndProducts()
 	y_matrix := make([][]float64, n_products)
 	for i := range y_matrix {
@@ -190,8 +192,7 @@ func (self *CF) FormMatrix() [][]float64 {
 		// and ProductID 1 will stored at row 0
 		y_matrix[int(self.Ybar_data.data[i][1])-1][int(self.Ybar_data.data[i][0])-1] = self.Ybar_data.data[i][2]
 	}
-
-	return y_matrix
+	self.Ybar_data.data = y_matrix
 }
 
 // A main function for testing in Recommendation package
@@ -202,8 +203,11 @@ func InitMatrix() {
 	fmt.Printf("cf.Y_data.data: %v\n", cf.Y_data.data)
 	fmt.Printf("cf.Ybar_data.data: %v\n", cf.Ybar_data.data)
 	fmt.Printf("mean_users: %v\n", mean_users)
-	y_matrix := cf.FormMatrix()
-	fmt.Printf("y_matrix: %v\n", y_matrix)
+	fmt.Printf("y_matrix: %v\n", cf.Ybar_data)
+	cf.FormMatrix()
+	fmt.Printf("cf.Ybar_data.data: %v\n", cf.Ybar_data.data)
+	user_vector := cf.Ybar_data.GetUserVector(1)
+	fmt.Printf("user_vector: %v\n", user_vector)
 }
 
 // Helper function: Find number of users, number of products
@@ -233,6 +237,87 @@ func CalculateSimilarity(user_1 []float64, user_2 []float64) float64 {
 }
 
 // Prediction function
-func (self *CF) Prediction(user_id int, item_id int) {
+func (self *CF) Predict(user_id int, item_id int) float64 {
+	// Get ids of all users who rate the item, has form [[other_user_id rating_on_item], ...]
+	users_slice := self.Y_data.FindUsersWhoRateItem(float64(item_id), float64(user_id))
+	// Get vector of user for cosine similarity, has form [[rating_on_item1 rating_on_item2 rating_on_item3 ...]]
+	user_vector := self.Ybar_data.GetUserVector(float64(user_id))
+	// Slice to store all calculated similarity, has form [[other_user_id similarity], ...]
+	var similarity_slice [][]float64
+	// Calculate similarity and append into the slice above
+	for _, other_user := range users_slice {
+		// Get vector of other user, has form [[rating_on_item1 rating_on_item2 rating_on_item3 ...]]
+		other_user_vector := self.Ybar_data.GetUserVector(other_user[0])
+		// Creating a temporary slice for storing one calculated similarity above, has form [other_user_id similarity]
+		temp_slice := []float64{other_user[0], CalculateSimilarity(user_vector, other_user_vector)}
+		// Append into similarity_slice
+		similarity_slice = append(similarity_slice, temp_slice)
+	}
 
+	// Sort similarity_slice following decrease order of similarity
+	sort.Slice(similarity_slice, func(i, j int) bool {
+		return similarity_slice[i][1] > similarity_slice[j][1]
+	})
+
+	// Select first n-th elements which is first n-th other-user that is most similar to user (n is k specified in struct CF)
+	similarity_slice = SelectFirstElementsOfSlice(similarity_slice, self.k)
+
+	// Get normalized rating of them on item
+	// Create a slice to store normalize_rating, has form [[other_user_id normalized_rating], ...]
+	var normalized_rating_slice [][]float64
+	// Loop through similarity slice to get other user id and get normalize rating
+	for _, other_user := range similarity_slice {
+		// Get normalize rating of other user, has form [other_user_id normalized_rating]
+		normalize_rating := []float64{other_user[1],
+			self.Ybar_data.GetMatrixValue(item_id, int(other_user[1]))}
+		// Append in to normalized_rating_slice
+		normalized_rating_slice = append(normalized_rating_slice, normalize_rating)
+	}
+
+	// Calculate and return prediction value
+	return CalculatePredictionValue(similarity_slice, normalized_rating_slice)
+}
+
+// Find users who rate item i, sort them on decrease order of giving rate values
+func (self *MatrixSlice) FindUsersWhoRateItem(item_id float64, user_id float64) [][]float64 {
+	var users_slice [][]float64
+	for i := 0; i < self.GetNumberOfRows(); i++ {
+		if self.GetMatrixValue(i, 1) == item_id && self.GetMatrixValue(i, 0) != user_id {
+			users_slice = append(users_slice, append([]float64{},
+				self.GetMatrixValue(i, 0),
+				self.GetMatrixValue(i, 2)))
+		}
+	}
+	sort.Slice(users_slice, func(i, j int) bool {
+		return users_slice[i][1] > users_slice[j][1]
+	})
+	return users_slice
+}
+
+// Select first n-th of slice
+func SelectFirstElementsOfSlice(input_slice [][]float64, n int) [][]float64 {
+	if n > len(input_slice) {
+		log.Fatalf("The number of elements to take is larger than the length of input slice")
+	}
+	var output_slice [][]float64
+	for i := 0; i < n; i++ {
+		output_slice = append(output_slice, input_slice[i])
+	}
+	return output_slice
+}
+
+// Get user vector
+func (self *MatrixSlice) GetUserVector(user_id float64) []float64 {
+	column_data := self.GetColumn(int(user_id - 1))
+	return column_data
+}
+
+// Calculate the prediction value
+func CalculatePredictionValue(similarity_slice [][]float64, normalized_rating_slice [][]float64) float64 {
+	var numerator, denominator float64
+	for i := 0; i < len(similarity_slice); i++ {
+		numerator += similarity_slice[i][1] * normalized_rating_slice[i][1]
+		denominator += math.Abs(similarity_slice[i][1])
+	}
+	return numerator / denominator
 }
