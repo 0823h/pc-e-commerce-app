@@ -208,6 +208,7 @@ func InitMatrix() {
 	fmt.Printf("cf.Ybar_data.data: %v\n", cf.Ybar_data.data)
 	user_vector := cf.Ybar_data.GetUserVector(1)
 	fmt.Printf("user_vector: %v\n", user_vector)
+	cf.Recommend(1)
 }
 
 // Helper function: Find number of users, number of products
@@ -296,6 +297,7 @@ func (self *MatrixSlice) FindUsersWhoRateItem(item_id float64, user_id float64) 
 
 // Select first n-th of slice
 func SelectFirstElementsOfSlice(input_slice [][]float64, n int) [][]float64 {
+	fmt.Printf("input_slice: %v\n", input_slice)
 	if n > len(input_slice) {
 		log.Fatalf("The number of elements to take is larger than the length of input slice")
 	}
