@@ -17,8 +17,10 @@ type MatrixSlice struct {
 }
 
 // Creating a new matrix
-func NewMatrix() *MatrixSlice {
-	matrix := &MatrixSlice{nil}
+func NewMatrix() MatrixSlice {
+	// data := [][]float64{}
+	// matrix := MatrixSlice{data}
+	matrix := MatrixSlice{nil}
 	return matrix
 }
 
@@ -143,8 +145,8 @@ func (self *MatrixSlice) GetMatrixValue(row int, column int) float64 {
 }
 
 type CF struct {
-	Y_data    *MatrixSlice
-	Ybar_data *MatrixSlice
+	Y_data    MatrixSlice
+	Ybar_data MatrixSlice
 	n_users   int
 	n_items   int
 	k         int
@@ -154,11 +156,16 @@ type CF struct {
 func NewCF() CF {
 	y_data := NewMatrix()
 	y_data.LoadRating()
-	ybar_data := NewMatrix()
+	ybar_data_data := make([][]float64, len(y_data.data))
 
 	for i := 0; i < y_data.GetNumberOfRows(); i++ {
-		ybar_data.data = append(ybar_data.data, y_data.data[i])
+		// ybar_data.data = append(ybar_data.data, y_data.data[i])
+		// 	// copy(ybar_data.data[i], y_data.data[i])
+		ybar_data_data[i] = make([]float64, len(y_data.data[i]))
+		copy(ybar_data_data[i], y_data.data[i])
 	}
+
+	ybar_data := MatrixSlice{ybar_data_data}
 
 	n_users, _ := y_data.GetUsersLength()
 	n_items := y_data.GetItemsLength()
@@ -169,6 +176,7 @@ func NewCF() CF {
 // Normalize a maitrx (collaborative filtering)
 func (self *CF) Normalize_Y() {
 	mean_users := self.Y_data.CalculateMeanFromMatrix()
+
 	for i := 0; i < self.Ybar_data.GetNumberOfRows(); i++ {
 		for j := 0; j < len(mean_users); j++ {
 			if self.Ybar_data.data[i][0] == mean_users[j][0] {
@@ -198,16 +206,10 @@ func (self *CF) FormMatrix() {
 // A main function for testing in Recommendation package
 func InitMatrix() {
 	cf := NewCF()
-	mean_users := cf.Y_data.CalculateMeanFromMatrix()
+	// mean_users := cf.Y_data.CalculateMeanFromMatrix()
 	cf.Normalize_Y()
-	fmt.Printf("cf.Y_data.data: %v\n", cf.Y_data.data)
-	fmt.Printf("cf.Ybar_data.data: %v\n", cf.Ybar_data.data)
-	fmt.Printf("mean_users: %v\n", mean_users)
-	fmt.Printf("y_matrix: %v\n", cf.Ybar_data)
 	cf.FormMatrix()
-	fmt.Printf("cf.Ybar_data.data: %v\n", cf.Ybar_data.data)
-	user_vector := cf.Ybar_data.GetUserVector(1)
-	fmt.Printf("user_vector: %v\n", user_vector)
+	// user_vector := cf.Ybar_data.GetUserVector(1)
 	cf.Recommend(1)
 }
 
@@ -230,9 +232,13 @@ func GetDBNumberOfUsersAndProducts() (n_users int, n_products int) {
 
 // Similarity function to calculate similarity between user - user using cosine - similarity
 func CalculateSimilarity(user_1 []float64, user_2 []float64) float64 {
+	ProcessIfZeroVector(user_1)
+	ProcessIfZeroVector(user_2)
+
 	distant, err := cosine_similarity.Cosine(user_1, user_2)
 	if err != nil {
-		log.Panic("Calculate distant fail!")
+		fmt.Printf("err.Error(): %v\n", err.Error())
+		log.Panic("Calculate distance fail!")
 	}
 	return distant
 }
@@ -241,6 +247,7 @@ func CalculateSimilarity(user_1 []float64, user_2 []float64) float64 {
 func (self *CF) Predict(user_id int, item_id int) float64 {
 	// Get ids of all users who rate the item, has form [[other_user_id rating_on_item], ...]
 	users_slice := self.Y_data.FindUsersWhoRateItem(float64(item_id), float64(user_id))
+	fmt.Printf("users_slice: %v\n", users_slice)
 	// Get vector of user for cosine similarity, has form [[rating_on_item1 rating_on_item2 rating_on_item3 ...]]
 	user_vector := self.Ybar_data.GetUserVector(float64(user_id))
 	// Slice to store all calculated similarity, has form [[other_user_id similarity], ...]
@@ -249,20 +256,21 @@ func (self *CF) Predict(user_id int, item_id int) float64 {
 	for _, other_user := range users_slice {
 		// Get vector of other user, has form [[rating_on_item1 rating_on_item2 rating_on_item3 ...]]
 		other_user_vector := self.Ybar_data.GetUserVector(other_user[0])
+		fmt.Printf("other_user_vector: %v\n", other_user_vector)
 		// Creating a temporary slice for storing one calculated similarity above, has form [other_user_id similarity]
 		temp_slice := []float64{other_user[0], CalculateSimilarity(user_vector, other_user_vector)}
 		// Append into similarity_slice
 		similarity_slice = append(similarity_slice, temp_slice)
 	}
 
+	fmt.Printf("similarity_slice before select: %v\n", similarity_slice)
 	// Sort similarity_slice following decrease order of similarity
 	sort.Slice(similarity_slice, func(i, j int) bool {
 		return similarity_slice[i][1] > similarity_slice[j][1]
 	})
-
 	// Select first n-th elements which is first n-th other-user that is most similar to user (n is k specified in struct CF)
 	similarity_slice = SelectFirstElementsOfSlice(similarity_slice, self.k)
-
+	fmt.Printf("similarity_slice: %v\n", similarity_slice)
 	// Get normalized rating of them on item
 	// Create a slice to store normalize_rating, has form [[other_user_id normalized_rating], ...]
 	var normalized_rating_slice [][]float64
@@ -270,11 +278,10 @@ func (self *CF) Predict(user_id int, item_id int) float64 {
 	for _, other_user := range similarity_slice {
 		// Get normalize rating of other user, has form [other_user_id normalized_rating]
 		normalize_rating := []float64{other_user[1],
-			self.Ybar_data.GetMatrixValue(item_id, int(other_user[1]))}
+			self.Ybar_data.GetMatrixValue(item_id-1, int(other_user[0])-1)}
 		// Append in to normalized_rating_slice
 		normalized_rating_slice = append(normalized_rating_slice, normalize_rating)
 	}
-
 	// Calculate and return prediction value
 	return CalculatePredictionValue(similarity_slice, normalized_rating_slice)
 }
@@ -297,9 +304,9 @@ func (self *MatrixSlice) FindUsersWhoRateItem(item_id float64, user_id float64) 
 
 // Select first n-th of slice
 func SelectFirstElementsOfSlice(input_slice [][]float64, n int) [][]float64 {
-	fmt.Printf("input_slice: %v\n", input_slice)
 	if n > len(input_slice) {
-		log.Fatalf("The number of elements to take is larger than the length of input slice")
+		log.Printf("The number of elements to take is larger than the length of input slice")
+		n = len(input_slice)
 	}
 	var output_slice [][]float64
 	for i := 0; i < n; i++ {
@@ -333,6 +340,8 @@ func (self *CF) Recommend(user_id int) [][]float64 {
 		}
 	}
 
+	fmt.Printf("rated_item_ids: %v\n", rated_item_ids)
+
 	var db_items []products.Product
 	db := common.GetDB()
 	db.Where("products.is_deleted = false").Find(&db_items)
@@ -340,13 +349,12 @@ func (self *CF) Recommend(user_id int) [][]float64 {
 	var unrated_item_ids []float64
 
 	for _, db_item := range db_items {
-		for _, rate_item_id := range rated_item_ids {
-			if float64(db_item.ID) != rate_item_id {
-				unrated_item_ids = append(unrated_item_ids, float64(db_item.ID))
-			}
+		if !contains(rated_item_ids, float64(db_item.ID)) {
+			unrated_item_ids = append(unrated_item_ids, float64(db_item.ID))
 		}
 	}
 
+	fmt.Printf("unrated_item_ids: %v\n", unrated_item_ids)
 	// Create slice to store item id and predict value, has form [[unrated_item_id predict_value] ...]
 	var predict_item_slice [][]float64
 	for _, unrated_item_id := range unrated_item_ids {
@@ -354,7 +362,7 @@ func (self *CF) Recommend(user_id int) [][]float64 {
 			self.Predict(user_id, int(unrated_item_id))}
 		predict_item_slice = append(predict_item_slice, predict_item)
 	}
-
+	fmt.Printf("predict_item_slice: %v\n", predict_item_slice)
 	// Recommend item that has predict value > 0
 	var recommend_items_slice [][]float64
 	for _, i := range predict_item_slice {
@@ -365,4 +373,26 @@ func (self *CF) Recommend(user_id int) [][]float64 {
 
 	fmt.Printf("recommend_items_slice: %v\n", recommend_items_slice)
 	return recommend_items_slice
+}
+
+// Process vector with zero value (which causes error when calculating)
+// cosine similarity) by add 1e-8 (small value)
+func ProcessIfZeroVector(vector []float64) {
+	for _, i := range vector {
+		if i != 0 {
+			return
+		}
+	}
+
+	vector[0] += 1e-8
+}
+
+// Check if slice contain element
+func contains(slice []float64, element float64) bool {
+	for _, v := range slice {
+		if v == element {
+			return true
+		}
+	}
+	return false
 }
