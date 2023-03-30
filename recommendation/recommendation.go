@@ -321,3 +321,46 @@ func CalculatePredictionValue(similarity_slice [][]float64, normalized_rating_sl
 	}
 	return numerator / denominator
 }
+
+// Recommend item to user
+func (self *CF) Recommend(user_id int) [][]float64 {
+	var rated_item_ids []float64
+	for i := 0; i < self.Y_data.GetNumberOfRows(); i++ {
+		if self.Y_data.data[i][0] == float64(user_id) {
+			rated_item_ids = append(rated_item_ids, self.Y_data.data[i][1])
+		}
+	}
+
+	var db_items []products.Product
+	db := common.GetDB()
+	db.Where("products.is_deleted = false").Find(&db_items)
+
+	var unrated_item_ids []float64
+
+	for _, db_item := range db_items {
+		for _, rate_item_id := range rated_item_ids {
+			if float64(db_item.ID) != rate_item_id {
+				unrated_item_ids = append(unrated_item_ids, float64(db_item.ID))
+			}
+		}
+	}
+
+	// Create slice to store item id and predict value, has form [[unrated_item_id predict_value] ...]
+	var predict_item_slice [][]float64
+	for _, unrated_item_id := range unrated_item_ids {
+		predict_item := []float64{unrated_item_id,
+			self.Predict(user_id, int(unrated_item_id))}
+		predict_item_slice = append(predict_item_slice, predict_item)
+	}
+
+	// Recommend item that has predict value > 0
+	var recommend_items_slice [][]float64
+	for _, i := range predict_item_slice {
+		if i[1] > 0 {
+			recommend_items_slice = append(recommend_items_slice, i)
+		}
+	}
+
+	fmt.Printf("recommend_items_slice: %v\n", recommend_items_slice)
+	return recommend_items_slice
+}
