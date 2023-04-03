@@ -14,4 +14,5 @@ func ProductRouter(router *gin.RouterGroup) {
 	router.POST("/:id/rate", middlewares.Authorization, RateProduct)
 	router.PUT("/:id", UpdateProduct)
 	router.POST("/image-test", TestImageUpload)
+	router.GET("/category/:id", GetCategoryProduct)
 }

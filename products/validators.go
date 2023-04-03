@@ -13,6 +13,7 @@ type CreateProductValidator struct {
 	Description    string         `form:"description" json:"description" binding:"required"`
 	Images         pq.StringArray `form:"images" json:"images" binding:"required"`
 	ManufacturerId uint           `form:"manufacturer_id" json:"manufacturer_id" binding:"required"`
+	CategoriesID   []uint         `form:"categories_id" json:"categories_id" binding:"required"`
 	productModel   Product        `json:"-"`
 }
 

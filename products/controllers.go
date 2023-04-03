@@ -15,7 +15,6 @@ import (
 	"tmdt-backend/users"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhenghaoz/gorse/client"
 )
 
 func GetAllProducts(c *gin.Context) {
@@ -50,12 +49,23 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
+	// Create category product relation
+	for _, category_id := range validator.CategoriesID {
+		var category_product CategoryProductRelation
+		category_product.ProductID = uint(validator.productModel.ID)
+		category_product.CategoryID = category_id
+		if err := db.Create(&category_product).Error; err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+
 	createdProduct := NewProduct()
 	db.Where("products.id = ?", validator.productModel.ID).Joins("Manufacturer").First(&createdProduct)
 
-	gorse := common.GetGorse()
-	gorse.InsertItem(context.Background(), client.Item{ItemId: strconv.FormatUint(createdProduct.ID, 10), IsHidden: false,
-		Categories: []string{"Shoes"}, Timestamp: "2023/03/18 12:22", Labels: []string{"Shoes labels"}, Comment: ""})
+	// Gorse
+	// gorse := common.GetGorse()
+	// gorse.InsertItem(context.Background(), client.Item{ItemId: strconv.FormatUint(createdProduct.ID, 10), IsHidden: false,
+	// 	Categories: []string{"Shoes"}, Timestamp: "2023/03/18 12:22", Labels: []string{"Shoes labels"}, Comment: ""})
 
 	serializer := ProductSerializer{c, createdProduct}
 	common.SendResponse(c, http.StatusCreated, "Success", serializer.Response())
@@ -356,5 +366,30 @@ func TestImageUpload(c *gin.Context) {
 	}
 
 	common.SendResponse(c, http.StatusOK, "Success", image_link)
+	return
+}
+
+func GetCategoryProduct(c *gin.Context) {
+	category_id := c.Param("id")
+	db := common.GetDB()
+
+	var category_products []CategoryProductRelation
+	db.Where("category_product_relations.category_id = ?", category_id).Find(&category_products)
+
+	var product_ids []uint
+	for _, category_product := range category_products {
+		product_ids = append(product_ids, category_product.ProductID)
+	}
+	// fmt.Printf("product_ids: %v\n", product_ids)
+
+	var products []Product
+	for _, product_id := range product_ids {
+		var product Product
+		db.Where("products.id = ?", product_id).Joins("Manufacturer").Find(&product)
+		products = append(products, product)
+		// fmt.Printf("product: %v\n", product)
+	}
+
+	common.SendResponse(c, http.StatusOK, "Success", products)
 	return
 }

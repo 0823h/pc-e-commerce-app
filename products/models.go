@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"time"
+	"tmdt-backend/categories"
 	"tmdt-backend/common"
 	"tmdt-backend/manufacturers"
 	"tmdt-backend/users"
@@ -37,6 +38,7 @@ func AutoMigrate() {
 
 	db.AutoMigrate(&Product{})
 	db.AutoMigrate(&Rating{})
+	db.AutoMigrate(&CategoryProductRelation{})
 }
 
 func SaveOne(data interface{}) *gorm.DB {
@@ -106,4 +108,15 @@ type Rating struct {
 func NewRating() Rating {
 	var rating Rating
 	return rating
+}
+
+type CategoryProductRelation struct {
+	ID         uint64 `gorm:"primaryKey"`
+	ProductID  uint
+	Product    Product `gorm:"foreignKey:ProductID"`
+	CategoryID uint
+	Category   categories.Category `gorm:"foreignKey:CategoryID"`
+	IsDeleted  bool                `gorm:"column:is_deleted;default:false"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

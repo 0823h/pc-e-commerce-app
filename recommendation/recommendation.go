@@ -398,3 +398,6 @@ func contains(slice []float64, element float64) bool {
 }
 
 // Refresh matrix when have new row
+// TODO
+
+// Content-based recommendation
