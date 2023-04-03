@@ -52,6 +52,7 @@ func main() {
 	users.UsersRegister(v1.Group("/users"))
 	products.ProductRouter(v1.Group("/products"))
 	ratings.RatingRouter(v1.Group("/ratings"))
+	categories.CategoryRouter(v1.Group("/categories"))
 
 	recommendation.InitMatrix()
 

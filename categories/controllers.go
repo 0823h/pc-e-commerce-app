@@ -25,5 +25,10 @@ func CreateCategory(c *gin.Context) {
 }
 
 func GetCategories(c *gin.Context) {
+	db := common.GetDB()
+	var categories []Category
 
+	db.Find(&categories)
+	common.SendResponse(c, http.StatusUnprocessableEntity, "Success", categories)
+	return
 }

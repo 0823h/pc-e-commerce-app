@@ -1,0 +1,1 @@
+package category_product_relation
