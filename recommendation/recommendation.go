@@ -5,6 +5,8 @@ import (
 	"log"
 	"math"
 	"sort"
+	"strconv"
+	"tmdt-backend/categories"
 	"tmdt-backend/common"
 	"tmdt-backend/products"
 	"tmdt-backend/users"
@@ -211,6 +213,12 @@ func InitMatrix() {
 	cf.FormMatrix()
 	// user_vector := cf.Ybar_data.GetUserVector(1)
 	cf.Recommend(1)
+
+	category_vector := GetCategoryVectors()
+	fmt.Printf("category_vector: %v\n", category_vector)
+
+	matrix := GetItemFeaturesMatrix()
+	fmt.Printf("matrix: %v\n", matrix)
 }
 
 // Helper function: Find number of users, number of products
@@ -401,3 +409,52 @@ func contains(slice []float64, element float64) bool {
 // TODO
 
 // Content-based recommendation
+
+// Get category vectors, has form [category_1 category_2]
+func GetCategoryVectors() [][]string {
+	var vector [][]string
+	var categories []categories.Category
+
+	db := common.GetDB()
+	db.Find(&categories)
+
+	for _, category := range categories {
+		vector = append(vector, []string{strconv.Itoa(int(category.ID)), category.Name})
+	}
+	return vector
+}
+
+// Create item features matrix, each row is a feature vector and has form [[product_id 0 0 1 0 1] ...]
+func GetItemFeaturesMatrix() MatrixSlice {
+	var products_list []products.Product
+	categories_vector := GetCategoryVectors()
+
+	db := common.GetDB()
+	db.Find(&products_list)
+
+	// This matrix has form [[0 0 1 0], [0 0 1 0]]
+	matrix := NewMatrix()
+
+	// Loop through each product
+	for _, product := range products_list {
+		// Row to insert into matrix, has form [0 0 1 0]
+		var matrix_row []float64
+
+		// Loop through each category
+		for _, category_id := range categories_vector {
+			fmt.Printf("category_id: %v\n", category_id)
+			//  Row to insert data from gorm
+			var category_product products.CategoryProductRelation
+			result := db.Where("category_product_relations.category_id = ? AND category_product_relations.product_id = ?", category_id[0], product.ID).Find(&category_product)
+			if result.RowsAffected == 0 {
+				matrix_row = append(matrix_row, 0)
+				continue
+			}
+			matrix_row = append(matrix_row, 1)
+		}
+
+		matrix.InsertRow(matrix_row)
+	}
+
+	return matrix
+}
