@@ -1,6 +1,7 @@
 package main
 
 import (
+	"tmdt-backend/categories"
 	"tmdt-backend/common"
 	"tmdt-backend/products"
 	"tmdt-backend/ratings"
@@ -16,6 +17,7 @@ import (
 func Migrate(db *gorm.DB) {
 	users.AutoMigrate()
 	products.AutoMigrate()
+	categories.AutoMigrate()
 }
 
 func main() {

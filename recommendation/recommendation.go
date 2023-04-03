@@ -396,3 +396,5 @@ func contains(slice []float64, element float64) bool {
 	}
 	return false
 }
+
+// Refresh matrix when have new row
