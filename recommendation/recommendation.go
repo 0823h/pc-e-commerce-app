@@ -12,6 +12,8 @@ import (
 	"tmdt-backend/users"
 
 	"github.com/gaspiman/cosine_similarity"
+	linearmodel "github.com/pa-m/sklearn/linear_model"
+	"gonum.org/v1/gonum/mat"
 )
 
 type MatrixSlice struct {
@@ -219,6 +221,23 @@ func InitMatrix() {
 
 	matrix := GetItemFeaturesMatrix()
 	fmt.Printf("matrix: %v\n", matrix)
+
+	rated_matrix, lib_rated_matrix := GetProductsRatedByUser(1)
+	fmt.Printf("rated_matrix: %v\n", rated_matrix)
+	fmt.Printf("lib_rated_matrix: %v\n", lib_rated_matrix)
+
+	rated_feature_matrix := GetRatedItemFeaturesMatrix(rated_matrix)
+	fmt.Printf("rated_feature_matrix: %v\n", rated_feature_matrix)
+
+	clf := linearmodel.NewRidge()
+	clf.Tol = 1e-3
+	clf.Normalize = false
+	clf.Alpha = 1
+	clf.L1Ratio = 0.
+
+	clf.Fit(rated_feature_matrix, lib_rated_matrix)
+	fmt.Printf("Coef:\n%.2f\n", mat.Formatted(clf.Coef.T()))
+	fmt.Printf("Intercept:\n%.2f\n", mat.Formatted(clf.Intercept.T()))
 }
 
 // Helper function: Find number of users, number of products
@@ -432,13 +451,18 @@ func GetItemFeaturesMatrix() MatrixSlice {
 	db := common.GetDB()
 	db.Find(&products_list)
 
-	// This matrix has form [[0 0 1 0], [0 0 1 0]]
+	// This matrix has form [[product_id 0 1 0], [product_id 0 1 0]]
 	matrix := NewMatrix()
+
+	// Number of row for defining a gonum library matrix
 
 	// Loop through each product
 	for _, product := range products_list {
-		// Row to insert into matrix, has form [0 0 1 0]
+		// Row to insert into matrix, has form [product_id 0 1 0]
 		var matrix_row []float64
+
+		// First element of row will be product id
+		matrix_row = append(matrix_row, float64(product.ID))
 
 		// Loop through each category
 		for _, category_id := range categories_vector {
@@ -457,4 +481,50 @@ func GetItemFeaturesMatrix() MatrixSlice {
 	}
 
 	return matrix
+}
+
+// Get rated items profile matrix
+func GetRatedItemFeaturesMatrix(rated_matrix [][]float64) *mat.Dense {
+	// Gonum matrix
+	lib_matrix := mat.NewDense(len(rated_matrix), 2, nil)
+	fmt.Printf("len(rated_matrix): %v\n", len(rated_matrix))
+
+	// Get feature matrix
+	feature_matrix := GetItemFeaturesMatrix()
+
+	for i, rated_matrix_element := range rated_matrix {
+		for _, feature_matrix_element := range feature_matrix.data {
+			if rated_matrix_element[0] == feature_matrix_element[0] {
+				fmt.Printf("i: %v\n", i)
+				lib_matrix.SetRow(i, []float64{feature_matrix_element[1], feature_matrix_element[2]})
+			}
+		}
+	}
+
+	return lib_matrix
+}
+
+// Get products rated by user, return a matrix has form [[product_id rating] ....]
+func GetProductsRatedByUser(user_id uint) ([][]float64, *mat.Dense) {
+	var rated_matrix [][]float64
+
+	db := common.GetDB()
+	var ratings []products.Rating
+
+	db.Find(&ratings)
+
+	for _, rating := range ratings {
+		if rating.UserID == uint64(user_id) {
+			rated_matrix = append(rated_matrix, []float64{float64(rating.ProductID),
+				float64(rating.Rate)})
+		}
+	}
+
+	lib_matrix := mat.NewDense(len(rated_matrix), 1, nil)
+
+	for i, rated := range rated_matrix {
+		lib_matrix.SetRow(i, []float64{rated[1]})
+	}
+
+	return rated_matrix, lib_matrix
 }
